@@ -3,7 +3,8 @@ import os.path as osp
 
 from ..utils.data import Dataset
 from ..utils.osutils import mkdir_if_missing
-from ..utils.serialization import write_json
+from ..utils.serialization import *
+import numpy as np
 
 
 def _pluck(identities, indices, relabel=False):
@@ -28,7 +29,7 @@ class Market1501_STD(Dataset):
     md5 = '65005ab7d12ec1c44de4eeafe813e68a'
 
     def __init__(self, root, split_id=0, num_val=100, download=True):
-        super(Market1501, self).__init__(root, split_id=split_id)
+        super(Market1501_STD, self).__init__(root, split_id=split_id)
 
         if download:
             self.download()
@@ -69,7 +70,7 @@ class Market1501_STD(Dataset):
         self.num_trainval_ids = len(trainval_pids)
 
         def get_pid_camid(fname):
-            name = os.path.splitext(fname)[0]
+            name = osp.splitext(fname)[0]
             pid,cam,_ = map(int,name.split('_'))
             return (fname,pid,cam)
 
@@ -146,7 +147,7 @@ class Market1501_STD(Dataset):
                 fnames.add(fname)
                 identities[pid][cam].append(fname)
                 shutil.copy(fpath, osp.join(images_dir, fname))
-            return pids,fnames
+            return pids,list(fnames)
 
         trainval_pids,_ = register('bounding_box_train')
         gallery_pids,gallery_fnames = register('bounding_box_test')

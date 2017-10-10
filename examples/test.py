@@ -65,6 +65,10 @@ def get_data(name, split_id, data_dir, height, width, batch_size, workers,
 
     return dataset, num_classes, train_loader, val_loader, test_loader
 
+def get_state_dict(dict1,dict2):
+    state_dict = {k:v for k,v in dict1.items() if k in dict2}
+    return state_dict
+
 def main(args):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -89,12 +93,13 @@ def main(args):
     start_epoch = best_top1 = 0
     if args.resume:
         checkpoint = load_checkpoint(args.resume)
-        model.load_state_dict(checkpoint['state_dict'])
+        state_dict = get_state_dict(checkpoint['state_dict'],model.state_dict())
+        model.load_state_dict(state_dict)
         start_epoch = checkpoint['epoch']
         best_top1 = checkpoint['best_top1']
         print("=> Start epoch {}  best top1 {:.1%}"
               .format(start_epoch, best_top1))
-    model = nn.DataParallel(model).cuda()
+    #model = nn.DataParallel(model).cuda()
 
     # Distance metric
     metric = DistanceMetric(algorithm=args.dist_metric)

@@ -5,6 +5,7 @@ from .cuhk01 import CUHK01
 from .cuhk03 import CUHK03
 from .dukemtmc import DukeMTMC
 from .market1501 import Market1501
+from .Market1501_STD import Market1501_STD
 from .viper import VIPeR
 
 
