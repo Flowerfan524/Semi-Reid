@@ -14,6 +14,7 @@ __factory = {
     'cuhk03': CUHK03,
     'market1501': Market1501,
     'dukemtmc': DukeMTMC,
+    'market1501std': Market1501_STD
 }
 
 
