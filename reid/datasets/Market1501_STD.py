@@ -33,7 +33,7 @@ def split_dataset(dataset,train_ratio=0.2,seed=0):
     pids = np.array([data[1] for data in dataset])
     clss = np.unique(pids)
     for cls in clss:
-        indices = np.where(pids == cls)
+        indices = np.where(pids == cls)[0]
         np.random.shuffle(indices)
         train_num = round(len(indices) * train_ratio)
         train_set += [dataset[i] for i in indices[:train_num]]

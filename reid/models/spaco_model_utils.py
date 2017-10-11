@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 from reid.utils.serialization import load_checkpoint, save_checkpoint
+from reid import models
 from reid.trainers import Trainer
 from reid.evaluators import Evaluator
 from collections import OrderedDict
@@ -9,7 +10,7 @@ from collections import OrderedDict
 _FEATURE_NUM = 128
 _DROPOUT = 0.3
 
-def get_model_by_name(model_name,num_classes):\
+def get_model_by_name(model_name,num_classes):
     """
     create model given the model_name and number of classes
     """
@@ -52,9 +53,10 @@ def train_model(model,dataloader,epochs=30):
         epochs: training epochs
         criterion
     """
+    optimizer = torch.optim.SGD(
     def adjust_lr(epoch):
-        step_size = 60 if args.arch == 'inception' else 40
-        lr = args.lr * (0.1 ** (epoch // step_size))
+        step_size = 40
+        lr = 0.1  * (0.1 ** (epoch // step_size))
         for g in optimizer.param_groups:
             g['lr'] = lr * g.get('lr_mult', 1)
     criterion = nn.CrossEntropyLoss().cuda()

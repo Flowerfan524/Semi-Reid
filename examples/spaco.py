@@ -42,7 +42,7 @@ def get_feature(model,data,data_dir):
 def predict_prob(model,data,data_dir,params):
     features = get_feature(model,data,data_dir)
     logits = np.array([logit.numpy() for logit in logits.values()])
-    predict_prob = np.exp(logits/np.sum(np.exp(logits,axis=1).reshape((-1,1))
+    predict_prob = np.exp(logits)/np.sum(np.exp(logits,axis=1).reshape((-1,1)))
     assert len(logits) == len(predict_prob)
     return predict_prob
 
@@ -94,7 +94,7 @@ def cotrain(model_names,data,save_paths,iter_step=1):
 
     return:
     trained model1, model2
-    """"
+    """
     assert iter_step >= 1
     assert len(model_names) == 2 and len(save_paths) == 2
     train_data,untrain_data = copy.deepcopy(data.train), copy.deepcopy(data.untrain)
@@ -122,9 +122,9 @@ def cotrain(model_names,data,save_paths,iter_step=1):
 
 
 
-if __name___ == '__main__':
-    dataset = datasets.create('market1501std','examples/data/')
+if __name__ == '__main__':
+    dataset = datasets.create('market1501std','examples/data/market1501std/')
     model_names = ['resnet50', 'inception']
-    save_path = './logs/softmax-loss/market1501-resnet50'
+    save_path = ['./logs/softmax-loss/market1501-resnet50','./logs/softmax-loss/market1501-inception']
     iter_step = 1
     cotrain(model_names,dataset,save_path,iter_step)
