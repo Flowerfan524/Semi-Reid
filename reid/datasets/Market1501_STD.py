@@ -32,12 +32,16 @@ def split_dataset(dataset,train_ratio=0.2,seed=0):
     np.random.seed(seed)
     pids = np.array([data[1] for data in dataset])
     clss = np.unique(pids)
+    assert len(clss) == 751
     for cls in clss:
         indices = np.where(pids == cls)[0]
         np.random.shuffle(indices)
-        train_num = round(len(indices) * train_ratio)
+        train_num = int(np.ceil((len(indices) * train_ratio)))
         train_set += [dataset[i] for i in indices[:train_num]]
         untrain_set += [dataset[i] for i in indices[train_num:]]
+    cls1 = np.unique([d[1] for d in train_set])
+    cls2 = np.unique([d[1] for d in untrain_set])
+    assert len(cls1) == len(cls2) and len(cls1) == 751
     return train_set,untrain_set
 
 class Market1501_STD(Dataset):

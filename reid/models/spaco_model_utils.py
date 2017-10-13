@@ -9,6 +9,24 @@ from collections import OrderedDict
 
 _FEATURE_NUM = 128
 _DROPOUT = 0.3
+_PARAMS_FACTORY={
+                'resnet':
+                    {'height':256,
+                    'width':128},
+                'inception':
+                    {'height':128,
+                    'width':64},
+                'inception_v3':
+                    {'height':299,
+                    'width':299},
+                'densenet':
+                    {'height':256,
+                    'width':128},
+                'vgg':
+                    {'height':224,
+                    'width':224}
+                }
+
 
 def get_model_by_name(model_name,num_classes):
     """
@@ -18,7 +36,7 @@ def get_model_by_name(model_name,num_classes):
         model = models.create(model_name,num_features=128,
                                 dropout=0.3,num_classes=num_classes)
     elif 'inception' in model_name:
-        model = model.create(model_name,num_features=128,
+        model = models.create(model_name,num_features=128,
                                 dropout=0.3,num_classes=num_classes)
     else:
         raise ValueError('wrong model name, no such model!')
@@ -30,16 +48,12 @@ def get_params_by_name(model_name):
     get model Parameters given the model_name
     """
     params = {}
-    if 'resnet' in model_name:
-        params['height'] = 256
-        params['width'] = 128
-        params['batch_size'] = 64
-    elif 'inception' in model_name:
-        params['height'] = 144
-        param['width'] = 56
-        params['batch_size'] = 64
-    else:
+    for k,v in _PARAMS_FACTORY.items():
+        if k in model_name:
+            params = v
+    if not params:
         raise ValueError('wrong model name, no params!')
+    params['batch_size'] = 64
     params['workers'] = 2
     return params
 
@@ -66,7 +80,6 @@ def train_model(model,dataloader,epochs=30):
                                 momentum=0.9,
                                 weight_decay=5e-4,
                                 nesterov=True)
-    optimizer = torch.optim.SGD(
     def adjust_lr(epoch):
         step_size = 40
         lr = 0.1  * (0.1 ** (epoch // step_size))
@@ -76,7 +89,5 @@ def train_model(model,dataloader,epochs=30):
     trainer = Trainer(model,criterion)
     for epoch in range(epochs):
         adjust_lr(epoch)
-        trainer.train(epoch, train_loader, optimizer)
+        trainer.train(epoch, dataloader, optimizer)
 
-def predict_prob(model,dataloader):
-    features,_ = extract_features(model,dataloader)

@@ -2,15 +2,27 @@ from __future__ import absolute_import
 
 from .inception import *
 from .resnet import *
+from .vgg import *
+from .inception_v3 import *
+from .densnet import *
 
 
 __factory = {
     'inception': inception,
+    'inception': inception_v3,
     'resnet18': resnet18,
     'resnet34': resnet34,
     'resnet50': resnet50,
     'resnet101': resnet101,
     'resnet152': resnet152,
+    'vgg11': vgg11,
+    'vgg13': vgg13,
+    'vgg16': vgg16,
+    'vgg19': vgg19
+    'densenet121': densenet121,
+    'densenet169': densenet169,
+    'densenet161': densenet161,
+    'densenet201': densenet201
 }
 
 
