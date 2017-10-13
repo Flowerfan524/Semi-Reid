@@ -1,11 +1,11 @@
-
 import torch
 from torch import nn
-from reid.utils.serialization import load_checkpoint, save_checkpoint
 from reid import models
 from reid.trainers import Trainer
-from reid.evaluators import Evaluator
+from reid.evaluators import *
 from collections import OrderedDict
+from reid import models
+from reid.dist_metric import DistanceMetric
 
 _FEATURE_NUM = 128
 _DROPOUT = 0.3
@@ -91,3 +91,42 @@ def train_model(model,dataloader,epochs=30):
         adjust_lr(epoch)
         trainer.train(epoch, dataloader, optimizer)
 
+
+def train(model_name,train_data,data_dir,epochs=30):
+    model = get_model_by_name(model_name,_NUM_CLASSES)
+    model = nn.DataParallel(model).cuda()
+    data_params = get_params_by_name(model_name)
+    dataloader = sdp.get_dataloader(train_data,data_dir,training=True,**data_params)
+    if 'inception' in model_name:
+        epoch = 50
+    train_model(model,dataloader,epochs=epoch)
+    return model
+
+def get_feature(model,data,data_dir,params):
+    dataloader = sdp.get_dataloader(data,data_dir,**params)
+    features,_ = extract_features(model,dataloader)
+    return features
+
+def predict_prob(model,data,data_dir,params):
+    features = get_feature(model,data,data_dir,params)
+    logits = np.array([logit.numpy() for logit in features.values()])
+    predict_prob = np.exp(logits)/np.sum(np.exp(logits),axis=1).reshape((-1,1))
+    assert len(logits) == len(predict_prob)
+    return predict_prob
+
+
+
+def train_predict(model_name,train_data,untrain_data,data_dir):
+    model = train(model_name,train_data,data_dir,model_params)
+    data_params = get_params_by_name(model_name)
+    pred_prob = predict_prob(model,untrain_data,data_dir,data_params)
+    return pred_prob
+
+
+def evaluate(model,dataset,metric=None):
+    query,gallery = dataset.query,dataset.gallery
+    dataloader = sdp.get_dataloader(list(set(dataset.query)|set(dataset.gallery)),dataset.images_dir)
+    metric = DistanceMetric(algorithm='euclidean')
+    metric.train(model,dataloader)
+    evaluator = Evaluator(model)
+    evaluator.evaluate(dataloader,query,gallery,metric)
