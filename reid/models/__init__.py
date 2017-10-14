@@ -4,12 +4,12 @@ from .inception import *
 from .resnet import *
 from .vgg import *
 from .inception_v3 import *
-from .densnet import *
+from .densenet import *
 
 
 __factory = {
     'inception': inception,
-    'inception': inception_v3,
+    'inception_v3': inception_v3,
     'resnet18': resnet18,
     'resnet34': resnet34,
     'resnet50': resnet50,
@@ -18,7 +18,7 @@ __factory = {
     'vgg11': vgg11,
     'vgg13': vgg13,
     'vgg16': vgg16,
-    'vgg19': vgg19
+    'vgg19': vgg19,
     'densenet121': densenet121,
     'densenet169': densenet169,
     'densenet161': densenet161,

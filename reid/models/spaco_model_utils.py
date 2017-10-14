@@ -1,11 +1,14 @@
 import torch
 from torch import nn
+from torch.backends import cudnn
 from reid import models
 from reid.trainers import Trainer
 from reid.evaluators import *
 from collections import OrderedDict
 from reid import models
 from reid.dist_metric import DistanceMetric
+from reid.utils.data import spaco_data_process as sdp
+import numpy as np
 
 _FEATURE_NUM = 128
 _DROPOUT = 0.3
@@ -92,14 +95,14 @@ def train_model(model,dataloader,epochs=30):
         trainer.train(epoch, dataloader, optimizer)
 
 
-def train(model_name,train_data,data_dir,epochs=30):
-    model = get_model_by_name(model_name,_NUM_CLASSES)
+def train(model_name,train_data,data_dir,num_classes,epochs=30):
+    model = get_model_by_name(model_name,num_classes)
     model = nn.DataParallel(model).cuda()
     data_params = get_params_by_name(model_name)
     dataloader = sdp.get_dataloader(train_data,data_dir,training=True,**data_params)
     if 'inception' in model_name:
-        epoch = 50
-    train_model(model,dataloader,epochs=epoch)
+        epochs = 50
+    train_model(model,dataloader,epochs=epochs)
     return model
 
 def get_feature(model,data,data_dir,params):
@@ -116,8 +119,8 @@ def predict_prob(model,data,data_dir,params):
 
 
 
-def train_predict(model_name,train_data,untrain_data,data_dir):
-    model = train(model_name,train_data,data_dir,model_params)
+def train_predict(model_name,train_data,untrain_data,num_classes,data_dir):
+    model = train(model_name,train_data,data_dir,num_classes)
     data_params = get_params_by_name(model_name)
     pred_prob = predict_prob(model,untrain_data,data_dir,data_params)
     return pred_prob

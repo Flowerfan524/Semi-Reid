@@ -24,17 +24,17 @@ def cotrain(model_names,data,save_paths,iter_step=1):
         pred_probs = []
         add_ids = []
         for view in range(2):
-            model = smu.train(model_names[view],train_data,data.images_dir)
+            model = smu.train(model_names[view],train_data,data.images_dir,data.num_trainval_ids)
             data_params = smu.get_params_by_name(model_names[view])
             pred_probs.append(smu.predict_prob(model,untrain_data,data_dir,data_params))
-            add_ids.append(sgp.sel_idx(pred_probs[view], data.train))
-            evaluate(model,data)
+            add_ids.append(sdp.sel_idx(pred_probs[view], data.train))
+            smu.evaluate(model,data)
             if step == iter_step-1:
                 torch.save(model.state_dict(),save_paths[view])
 
         pred_prob = sum(pred_probs)
-        add_id = sum(sel_ids)
-        train_data, untrain_data = update_train_untrain(add_idx,train_data,untrain_data,pred_prob)
+        add_id = sum(add_ids)
+        train_data, untrain_data = sdp.update_train_untrain(add_id,train_data,untrain_data,pred_prob)
 
 
 

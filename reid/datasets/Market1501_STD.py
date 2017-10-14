@@ -77,15 +77,12 @@ class Market1501_STD(Dataset):
         if num_val >= num or num_val < 0:
             raise ValueError("num_val exceeds total identities {}"
                              .format(num))
-        train_pids = sorted(trainval_pids[:-num_val])
         val_pids = sorted(trainval_pids[-num_val:])
 
         self.meta = read_json(osp.join(self.root, 'meta.json'))
         identities = self.meta['identities']
-        self.train = _pluck(identities, train_pids, relabel=True)
         self.val = _pluck(identities, val_pids, relabel=True)
         self.trainval = _pluck(identities, trainval_pids, relabel=True)
-        self.num_train_ids = len(train_pids)
         self.num_val_ids = len(val_pids)
         self.num_trainval_ids = len(trainval_pids)
 
@@ -102,8 +99,10 @@ class Market1501_STD(Dataset):
             print(self.__class__.__name__, "dataset loaded")
             print("  subset   | # ids | # images")
             print("  ---------------------------")
+            print("  untrain    | {:5d} | {:8d}"
+                  .format(self.num_trainval_ids, len(self.train)))
             print("  train    | {:5d} | {:8d}"
-                  .format(self.num_train_ids, len(self.train)))
+                  .format(self.num_trainval_ids, len(self.untrain)))
             print("  val      | {:5d} | {:8d}"
                   .format(self.num_val_ids, len(self.val)))
             print("  trainval | {:5d} | {:8d}"
