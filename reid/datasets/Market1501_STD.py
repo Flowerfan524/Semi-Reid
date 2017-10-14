@@ -99,9 +99,9 @@ class Market1501_STD(Dataset):
             print(self.__class__.__name__, "dataset loaded")
             print("  subset   | # ids | # images")
             print("  ---------------------------")
-            print("  untrain    | {:5d} | {:8d}"
-                  .format(self.num_trainval_ids, len(self.train)))
             print("  train    | {:5d} | {:8d}"
+                  .format(self.num_trainval_ids, len(self.train)))
+            print("  untrain  | {:5d} | {:8d}"
                   .format(self.num_trainval_ids, len(self.untrain)))
             print("  val      | {:5d} | {:8d}"
                   .format(self.num_val_ids, len(self.val)))
