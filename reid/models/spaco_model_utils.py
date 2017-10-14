@@ -1,11 +1,8 @@
 import torch
 from torch import nn
-from torch.backends import cudnn
 from reid import models
 from reid.trainers import Trainer
 from reid.evaluators import *
-from collections import OrderedDict
-from reid import models
 from reid.dist_metric import DistanceMetric
 from reid.utils.data import spaco_data_process as sdp
 import numpy as np
@@ -37,10 +34,10 @@ def get_model_by_name(model_name,num_classes):
     """
     if 'resnet' in model_name:
         model = models.create(model_name,num_features=128,
-                                dropout=0.3,num_classes=num_classes)
+                              dropout=0.3,num_classes=num_classes)
     elif 'inception' in model_name:
         model = models.create(model_name,num_features=128,
-                                dropout=0.3,num_classes=num_classes)
+                              dropout=0.3,num_classes=num_classes)
     else:
         raise ValueError('wrong model name, no such model!')
     return model
@@ -83,9 +80,10 @@ def train_model(model,dataloader,epochs=30):
                                 momentum=0.9,
                                 weight_decay=5e-4,
                                 nesterov=True)
+
     def adjust_lr(epoch):
         step_size = 40
-        lr = 0.1  * (0.1 ** (epoch // step_size))
+        lr = 0.1 * (0.1 ** (epoch // step_size))
         for g in optimizer.param_groups:
             g['lr'] = lr * g.get('lr_mult', 1)
     criterion = nn.CrossEntropyLoss().cuda()
@@ -99,7 +97,8 @@ def train(model_name,train_data,data_dir,num_classes,epochs=30):
     model = get_model_by_name(model_name,num_classes)
     model = nn.DataParallel(model).cuda()
     data_params = get_params_by_name(model_name)
-    dataloader = sdp.get_dataloader(train_data,data_dir,training=True,**data_params)
+    dataloader = sdp.get_dataloader(
+        train_data,data_dir,training=True,**data_params)
     if 'inception' in model_name:
         epochs = 50
     train_model(model,dataloader,epochs=epochs)
