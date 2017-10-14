@@ -46,7 +46,7 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
 
             # update w_view
             train_data,_ = sdp.update_train_untrain(
-                add_id,train_data,untrain_data,pred_probs[view])
+                add_id,train_data,untrain_data,pred_y)
             model = smu.train(model_names[view],train_data,data_dir)
 
             # update y

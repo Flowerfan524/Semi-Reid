@@ -31,15 +31,14 @@ def get_dataloader(dataset,data_dir,
     return data_loader
 
 
-def update_train_untrain(sel_idx,train_data,untrain_data,pred_prob):
+def update_train_untrain(sel_idx,train_data,untrain_data,pred_y):
     assert len(train_data[0]) == len(untrain_data[0])
-    pred_y = np.argmax(pred_prob,axis=1)
-    add_data = [(untrain_data[i][0],pred_y[i],untrain_data[i][2])
+    add_data = [(untrain_data[i][0],int(pred_y[i]),untrain_data[i][2])
                 for i,flag in enumerate(sel_idx) if flag]
-    untrain_data = [untrain_data[i]
+    data1 = [untrain_data[i]
                     for i,flag in enumerate(sel_idx) if not flag]
-    train_data += add_data
-    return train_data,untrain_data
+    data2 = train_data + add_data
+    return data2, data1
 
 
 def sel_idx(score,train_data,ratio=0.5):

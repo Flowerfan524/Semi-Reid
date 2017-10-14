@@ -4,6 +4,7 @@ from reid.utils.data import spaco_data_process as sdp
 from reid import datasets
 import copy
 import torch
+import numpy as np
 
 
 def cotrain(model_names,data,save_paths,iter_step=1):
@@ -36,10 +37,10 @@ def cotrain(model_names,data,save_paths,iter_step=1):
             torch.save(model.state_dict(),save_paths[view] +
                        '.epoch%d'%(step + 1))
 
-        pred_prob = sum(pred_probs)
+        pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)
         train_data, untrain_data = sdp.update_train_untrain(
-            add_id,train_data,untrain_data,pred_prob)
+            add_id,train_data,untrain_data,pred_y)
 
 
 if __name__ == '__main__':
@@ -47,5 +48,5 @@ if __name__ == '__main__':
     model_names = ['resnet50', 'inception']
     save_path = ['./logs/softmax-loss/market1501/resnet50',
                  'logs/softmax-loss/market1501-inception/inception']
-    iter_step = 5
+    iter_step = 2
     cotrain(model_names,dataset,save_path,iter_step)
