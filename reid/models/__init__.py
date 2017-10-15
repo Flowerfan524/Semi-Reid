@@ -9,7 +9,7 @@ from .densenet import *
 
 __factory = {
     'inception': inception,
-    'inception_v3': inception_v3,
+    'inception_v3': Inception_v3,
     'resnet18': resnet18,
     'resnet34': resnet34,
     'resnet50': resnet50,

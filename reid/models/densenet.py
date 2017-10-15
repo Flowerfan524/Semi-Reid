@@ -63,6 +63,8 @@ class DenseNet(nn.Module):
 
     def forward(self, x):
         x = self.base.features(x)
+        x = F.relu(x, inplace=True)
+        x = F.avg_pool2d(x, kernel_size=7).view(x.size(0), -1)
 
         if self.cut_at_last:
             return x
