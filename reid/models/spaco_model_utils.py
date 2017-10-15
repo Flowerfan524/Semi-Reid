@@ -58,7 +58,7 @@ def get_params_by_name(model_name):
     return params
 
 
-def train_model(model,dataloader,epochs=30):
+def train_model(model,dataloader,epochs=50):
     """
     train model given the dataloader the criterion, stop when epochs are reached
     params:
@@ -93,14 +93,14 @@ def train_model(model,dataloader,epochs=30):
         trainer.train(epoch, dataloader, optimizer)
 
 
-def train(model_name,train_data,data_dir,num_classes,epochs=1):
+def train(model_name,train_data,data_dir,num_classes,epochs=50):
     model = get_model_by_name(model_name,num_classes)
     model = nn.DataParallel(model).cuda()
     data_params = get_params_by_name(model_name)
     dataloader = sdp.get_dataloader(
         train_data,data_dir,training=True,**data_params)
     if 'inception' in model_name:
-        epochs = 1
+        epochs = 50
     train_model(model,dataloader,epochs=epochs)
     return model
 
