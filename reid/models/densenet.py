@@ -6,7 +6,8 @@ from torch.nn import init
 import torchvision
 
 
-__all__ = ['DenseNet', 'densenet121', 'densenet161', 'densenet169', 'densenet201']
+__all__ = ['DenseNet', 'densenet121', 'densenet161',
+           'densenet169', 'densenet201']
 
 
 class DenseNet(nn.Module):
@@ -17,23 +18,23 @@ class DenseNet(nn.Module):
         201: torchvision.models.densenet201,
     }
 
-    def __init__(self, depth, pretrained=True, cut_at_pooling=False,
+    def __init__(self, depth, pretrained=True, cut_at_last=False,
                  num_features=0, norm=False, dropout=0, num_classes=0):
         super(DenseNet, self).__init__()
 
         self.depth = depth
         self.pretrained = pretrained
-        self.cut_at_pooling = cut_at_pooling
+        self.cut_at_last = cut_at_last
 
         # Construct base (pretrained) resnet
         if depth not in DenseNet.__factory:
             raise KeyError("Unsupported depth:", depth)
         self.base = DenseNet.__factory[depth](pretrained=pretrained)
-        
-        out_features = self.base.features.norm5.num_features
+
+        out_num_features = self.base.features.norm5.num_features
         self.num_classes = num_classes
 
-        if not self.cut_at_pooling:
+        if not self.cut_at_last:
             self.num_features = num_features
             self.norm = norm
             self.dropout = dropout
@@ -41,7 +42,7 @@ class DenseNet(nn.Module):
 
             # Append new layers
             if self.has_embedding:
-                self.feat = nn.Linear(out_features, self.num_features)
+                self.feat = nn.Linear(out_num_features, self.num_features)
                 self.feat_bn = nn.BatchNorm1d(self.num_features)
                 init.kaiming_normal(self.feat.weight, mode='fan_out')
                 init.constant(self.feat.bias, 0)
@@ -49,7 +50,7 @@ class DenseNet(nn.Module):
                 init.constant(self.feat_bn.bias, 0)
             else:
                 # Change the num_features to CNN output channels
-                self.num_features = out_planes
+                self.num_features = out_num_features
             if self.dropout > 0:
                 self.drop = nn.Dropout(self.dropout)
         if self.num_classes > 0:
@@ -62,6 +63,9 @@ class DenseNet(nn.Module):
 
     def forward(self, x):
         x = self.base.features(x)
+
+        if self.cut_at_last:
+            return x
 
         if self.has_embedding:
             x = self.feat(x)
@@ -105,5 +109,3 @@ def densenet169(**kwargs):
 
 def densenet201(**kwargs):
     return DenseNet(201, **kwargs)
-
-

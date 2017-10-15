@@ -40,7 +40,8 @@ class Inception_v3(nn.Module):
             if self.dropout > 0:
                 self.drop = nn.Dropout(self.dropout)
             if self.num_classes > 0:
-                self.classifier = nn.Linear(self.num_features, self.num_classes)
+                self.classifier = nn.Linear(
+                    self.num_features, self.num_classes)
                 init.normal(self.classifier.weight, std=0.001)
                 init.constant(self.classifier.bias, 0)
 
@@ -82,5 +83,3 @@ class Inception_v3(nn.Module):
                 init.normal(m.weight, std=0.001)
                 if m.bias is not None:
                     init.constant(m.bias, 0)
-
-

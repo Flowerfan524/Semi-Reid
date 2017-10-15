@@ -17,20 +17,20 @@ class VGG(nn.Module):
         19: torchvision.models.vgg19_bn,
     }
 
-    def __init__(self, depth, pretrained=True, cut_at_pooling=False,
+    def __init__(self, depth, pretrained=True, cut_at_last=False,
                  num_features=0, norm=False, dropout=0, num_classes=0):
         super(VGG, self).__init__()
 
         self.depth = depth
         self.pretrained = pretrained
-        self.cut_at_pooling = cut_at_pooling
+        self.cut_at_last = cut_at_last
 
         # Construct base (pretrained) resnet
         if depth not in VGG.__factory:
             raise KeyError("Unsupported depth:", depth)
         self.base = VGG.__factory[depth](pretrained=pretrained)
 
-        if not self.cut_at_pooling:
+        if not self.cut_at_last:
             self.num_features = num_features
             self.norm = norm
             self.dropout = dropout
@@ -53,7 +53,8 @@ class VGG(nn.Module):
             if self.dropout > 0:
                 self.drop = nn.Dropout(self.dropout)
             if self.num_classes > 0:
-                self.classifier = nn.Linear(self.num_features, self.num_classes)
+                self.classifier = nn.Linear(
+                    self.num_features, self.num_classes)
                 init.normal(self.classifier.weight, std=0.001)
                 init.constant(self.classifier.bias, 0)
 
@@ -68,8 +69,8 @@ class VGG(nn.Module):
                 if name == 'classifier.0':
                     x = x.view(x.size(0),-1)
                 x = module(x)
-                
-        if self.cut_at_pooling:
+
+        if self.cut_at_last:
             return x
 
         if self.has_embedding:
@@ -114,5 +115,3 @@ def vgg16(**kwargs):
 
 def vgg19(**kwargs):
     return VGG(19, **kwargs)
-
-
