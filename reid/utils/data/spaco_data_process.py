@@ -36,7 +36,7 @@ def update_train_untrain(sel_idx,train_data,untrain_data,pred_y):
     add_data = [(untrain_data[i][0],int(pred_y[i]),untrain_data[i][2])
                 for i,flag in enumerate(sel_idx) if flag]
     data1 = [untrain_data[i]
-                    for i,flag in enumerate(sel_idx) if not flag]
+             for i,flag in enumerate(sel_idx) if not flag]
     data2 = train_data + add_data
     return data2, data1
 
