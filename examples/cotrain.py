@@ -45,8 +45,8 @@ def cotrain(model_names,data,save_paths,iter_step=1):
 
 if __name__ == '__main__':
     dataset = datasets.create('market1501std','examples/data/market1501std/')
-    model_names = ['resnet50', 'inception']
-    save_path = ['./logs/softmax-loss/market1501/resnet50',
-                 'logs/softmax-loss/market1501/inception']
+    model_names = ['densenet121', 'resnet50']
+    save_path = ['logs/softmax-loss/market1501/densenet121', './logs/softmax-loss/market1501/resnet50']
+                 
     iter_step = 5
     cotrain(model_names,dataset,save_path,iter_step)

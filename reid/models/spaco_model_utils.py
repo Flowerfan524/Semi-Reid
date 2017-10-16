@@ -20,8 +20,8 @@ _PARAMS_FACTORY={
                     {'height':299,
                     'width':299},
                 'densenet':
-                    {'height':256,
-                    'width':128},
+                    {'height':224,
+                    'width':224},
                 'vgg':
                     {'height':224,
                     'width':224}
@@ -38,6 +38,9 @@ def get_model_by_name(model_name,num_classes):
     elif 'inception' in model_name:
         model = models.create(model_name,num_features=128,
                               dropout=0.3,num_classes=num_classes)
+    elif 'densenet' in model_name:
+        model = models.create(model_name,num_features=128,
+                              dropout=0.3, num_classes=num_classes)
     else:
         raise ValueError('wrong model name, no such model!')
     return model
