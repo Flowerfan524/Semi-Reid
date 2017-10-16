@@ -3,7 +3,7 @@ import os.path as osp
 
 from ..utils.data import Dataset
 from ..utils.osutils import mkdir_if_missing
-from ..utils.serialization import *
+from ..utils.serialization import read_json, write_json
 import numpy as np
 
 
@@ -21,6 +21,7 @@ def _pluck(identities, indices, relabel=False):
                 else:
                     ret.append((fname, pid, camid))
     return ret
+
 
 def split_dataset(dataset,train_ratio=0.2,seed=0):
     """
@@ -44,6 +45,7 @@ def split_dataset(dataset,train_ratio=0.2,seed=0):
     assert len(cls1) == len(cls2) and len(cls1) == 751
     return train_set,untrain_set
 
+
 class Market1501_STD(Dataset):
     url = 'https://drive.google.com/file/d/0B8-rUzbwVRk0c054eEozWG9COHM/view'
     md5 = '65005ab7d12ec1c44de4eeafe813e68a'
@@ -59,7 +61,6 @@ class Market1501_STD(Dataset):
                                "You can use download=True to download it.")
 
         self.load(num_val)
-
 
     def load(self, num_val=0.3, verbose=True):
         splits = read_json(osp.join(self.root, 'splits.json'))
@@ -92,8 +93,10 @@ class Market1501_STD(Dataset):
             return (fname,pid,cam)
 
         self.train, self.untrain = split_dataset(self.trainval)
-        self.query = [get_pid_camid(fname) for fname in self.split['query']]
-        self.gallery = [get_pid_camid(fname) for fname in self.split['gallery']]
+        self.query = [get_pid_camid(fname)
+                      for fname in self.split['query']]
+        self.gallery = [get_pid_camid(fname)
+                        for fname in self.split['gallery']]
 
         if verbose:
             print(self.__class__.__name__, "dataset loaded")
@@ -112,7 +115,6 @@ class Market1501_STD(Dataset):
             print("  gallery  | {:5d} | {:8d}"
                   .format(len(self.split['gallery']), len(self.gallery)))
 
-
     def download(self):
         if self._check_integrity():
             print("Files already downloaded and verified")
@@ -129,8 +131,8 @@ class Market1501_STD(Dataset):
 
         # Download the raw zip file
         fpath = osp.join(raw_dir, 'Market-1501-v15.09.15.zip')
-        if osp.isfile(fpath) and \
-          hashlib.md5(open(fpath, 'rb').read()).hexdigest() == self.md5:
+        if osp.isfile(fpath) and
+        hashlib.md5(open(fpath, 'rb').read()).hexdigest() == self.md5:
             print("Using downloaded file: " + fpath)
         else:
             raise RuntimeError("Please download the dataset manually from {} "
@@ -157,7 +159,8 @@ class Market1501_STD(Dataset):
             for fpath in fpaths:
                 fname = osp.basename(fpath)
                 pid, cam = map(int, pattern.search(fname).groups())
-                if pid == -1: continue  # junk images are just ignored
+                if pid == -1:
+                    continue  # junk images are just ignored
                 assert 0 <= pid <= 1501  # pid == 0 means background
                 assert 1 <= cam <= 6
                 cam -= 1

@@ -34,8 +34,8 @@ def cotrain(model_names,data,save_paths,iter_step=1):
                 model,untrain_data,data_dir,data_params))
             add_ids.append(sdp.sel_idx(pred_probs[view], data.train))
             torch.save(model.state_dict(),save_paths[view] +
-                       '.epoch%d'%(step + 1))
-            smu.evaluate(model,data)
+                       '.epoch%d' % (step + 1))
+            smu.evaluate(model,data,data_params)
 
         pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)
@@ -46,7 +46,8 @@ def cotrain(model_names,data,save_paths,iter_step=1):
 if __name__ == '__main__':
     dataset = datasets.create('market1501std','examples/data/market1501std/')
     model_names = ['densenet121', 'resnet50']
-    save_path = ['logs/softmax-loss/market1501/densenet121', './logs/softmax-loss/market1501/resnet50']
-                 
+    save_path = ['logs/softmax-loss/market1501/densenet121',
+                 './logs/softmax-loss/market1501/resnet50']
+
     iter_step = 5
     cotrain(model_names,dataset,save_path,iter_step)
