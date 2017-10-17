@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import
-from reid.models import spaco_model_utils as smu
-from reid.utils.data import spaco_data_process as sdp
+from reid.models import model_utils as mu
+from reid.utils.data import data_process as dp
 from reid import datasets
 import copy
 import torch
@@ -27,19 +27,19 @@ def cotrain(model_names,data,save_paths,iter_step=1):
         pred_probs = []
         add_ids = []
         for view in range(2):
-            model = smu.train(model_names[view],train_data,
+            model = mu.train(model_names[view],train_data,
                               data.images_dir,data.num_trainval_ids,epochs=50)
-            data_params = smu.get_params_by_name(model_names[view])
-            pred_probs.append(smu.predict_prob(
+            data_params = mu.get_params_by_name(model_names[view])
+            pred_probs.append(mu.predict_prob(
                 model,untrain_data,data_dir,data_params))
-            add_ids.append(sdp.sel_idx(pred_probs[view], data.train))
+            add_ids.append(dp.sel_idx(pred_probs[view], data.train))
             torch.save(model.state_dict(),save_paths[view] +
                        '.epoch%d' % (step + 1))
-            smu.evaluate(model,data,params=data_params)
+            mu.evaluate(model,data,params=data_params)
 
         pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)
-        train_data, untrain_data = sdp.update_train_untrain(
+        train_data, untrain_data = dp.update_train_untrain(
             add_id,train_data,untrain_data,pred_y)
 
 

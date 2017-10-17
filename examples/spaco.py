@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import
-from reid.models import spaco_model_utils as smu
-from reid.utils.data import spaco_data_process as sdp
+from reid.models import model_utils as mu
+from reid.utils.data import data_process as dp
 from reid import datasets
 import copy
 import numpy as np
@@ -33,9 +33,9 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
     pred_probs = []
     add_ids = []
     for view in range(num_view):
-        pred_probs.append(smu.train_predict(
+        pred_probs.append(mu.train_predict(
             model_names[view],train_data,untrain_data,num_classes,data_dir))
-        add_ids.append(sdp.sel_idx(pred_probs[view], data.train, add_ratio))
+        add_ids.append(dp.sel_idx(pred_probs[view], data.train, add_ratio))
     pred_y = np.argmax(sum(pred_probs), axis=1)
 
     for step in range(iter_step):
@@ -43,25 +43,25 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
             # update v_view
             ov = add_ids[1 - view]
             pred_probs[view][ov,pred_y[ov]] += gamma
-            add_id = sdp.sel_idx(pred_probs[view],data.train, add_ratio)
+            add_id = dp.sel_idx(pred_probs[view],data.train, add_ratio)
 
             # update w_view
-            train_data,_ = sdp.update_train_untrain(
+            train_data,_ = dp.update_train_untrain(
                 add_id,data.train,untrain_data,pred_y)
-            model = smu.train(model_names[view],train_data,data_dir,num_classes)
+            model = mu.train(model_names[view],train_data,data_dir,num_classes)
 
             # update y
-            data_params = smu.get_params_by_name(model_names[view])
-            pred_probs[view] = smu.predict_prob(
+            data_params = mu.get_params_by_name(model_names[view])
+            pred_probs[view] = mu.predict_prob(
                 model,untrain_data,data_dir,data_params)
             pred_y = np.argmax(sum(pred_probs),axis=1)
 
             # udpate v_view for next view
             add_ratio += 0.5
-            add_ids[view] = sdp.sel_idx(pred_probs[view], data.train,add_ratio)
+            add_ids[view] = dp.sel_idx(pred_probs[view], data.train,add_ratio)
 
             # evaluation current model and save it
-            smu.evaluate(model,data,data_params)
+            mu.evaluate(model,data,data_params)
             torch.save(model.state_dict(),save_paths[view] + '.epoch%d' % (step + 1))
 
 
