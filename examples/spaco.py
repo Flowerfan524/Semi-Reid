@@ -24,6 +24,7 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
     train_data = copy.deepcopy(data.train)
     untrain_data = copy.deepcopy(data.untrain)
     data_dir = data.images_dir
+    num_classes = data.num_trainval_ids
     ###########
     # initiate classifier to get preidctions
     ###########
@@ -33,21 +34,21 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
     add_ids = []
     for view in range(num_view):
         pred_probs.append(smu.train_predict(
-            model_names[view],train_data,untrain_data,data_dir))
+            model_names[view],train_data,untrain_data,num_classes,data_dir))
         add_ids.append(sdp.sel_idx(pred_probs[view], data.train, add_ratio))
     pred_y = np.argmax(sum(pred_probs), axis=1)
 
     for step in range(iter_step):
         for view in range(num_view):
             # update v_view
-            ov = add_ids[3 - view]
+            ov = add_ids[1 - view]
             pred_probs[view][ov,pred_y[ov]] += gamma
             add_id = sdp.sel_idx(pred_probs[view],data.train, add_ratio)
 
             # update w_view
             train_data,_ = sdp.update_train_untrain(
-                add_id,train_data,untrain_data,pred_y)
-            model = smu.train(model_names[view],train_data,data_dir)
+                add_id,data.train,untrain_data,pred_y)
+            model = smu.train(model_names[view],train_data,data_dir,num_classes)
 
             # update y
             data_params = smu.get_params_by_name(model_names[view])
@@ -60,14 +61,14 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
             add_ids[view] = sdp.sel_idx(pred_probs[view], data.train,add_ratio)
 
             # evaluation current model and save it
-            smu.evaluate(model,data)
-            torch.save(model.state_dict(),save_paths[view] + str(step + 1))
+            smu.evaluate(model,data,data_params)
+            torch.save(model.state_dict(),save_paths[view] + '.epoch%d' % (step + 1))
 
 
 if __name__ == '__main__':
     dataset = datasets.create('market1501std','examples/data/market1501std/')
-    model_names = ['resnet50', 'inception']
-    save_path = ['./logs/softmax-loss/market1501-resnet50/resnet_spaco',
-                 './logs/softmax-loss/market1501-inception/inception_spaco']
+    model_names = ['resnet50', 'densenet121']
+    save_path = ['./logs/softmax-loss/market1501/resnet50.spaco',
+                 './logs/softmax-loss/market1501/densenet121.spaco']
     iter_step = 5
     spaco(model_names,dataset,save_path,iter_step)

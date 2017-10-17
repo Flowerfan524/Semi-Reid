@@ -131,7 +131,7 @@ def train_predict(model_name,train_data,untrain_data,num_classes,data_dir):
     return pred_prob
 
 
-def evaluate(model,dataset,metric=None,params):
+def evaluate(model,dataset,params,metric=None):
     query,gallery = dataset.query,dataset.gallery
     dataloader = sdp.get_dataloader(
         list(set(dataset.query) | set(dataset.gallery)),

@@ -54,5 +54,5 @@ def sel_idx(score,train_data,ratio=0.5):
         idx_sort = np.argsort(cls_score)
         add_num = min(int(np.ceil(count_per_class[cls] * ratio)),
                       indices.shape[0])
-        add_indices[indices[idx_sort[:add_num]]] = 1
+        add_indices[indices[idx_sort[-add_num:]]] = 1
     return add_indices.astype('bool')

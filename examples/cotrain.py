@@ -28,14 +28,14 @@ def cotrain(model_names,data,save_paths,iter_step=1):
         add_ids = []
         for view in range(2):
             model = smu.train(model_names[view],train_data,
-                              data.images_dir,data.num_trainval_ids)
+                              data.images_dir,data.num_trainval_ids,epochs=50)
             data_params = smu.get_params_by_name(model_names[view])
             pred_probs.append(smu.predict_prob(
                 model,untrain_data,data_dir,data_params))
             add_ids.append(sdp.sel_idx(pred_probs[view], data.train))
             torch.save(model.state_dict(),save_paths[view] +
                        '.epoch%d' % (step + 1))
-            smu.evaluate(model,data,data_params)
+            smu.evaluate(model,data,params=data_params)
 
         pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)

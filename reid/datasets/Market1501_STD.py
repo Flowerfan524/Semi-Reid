@@ -131,8 +131,8 @@ class Market1501_STD(Dataset):
 
         # Download the raw zip file
         fpath = osp.join(raw_dir, 'Market-1501-v15.09.15.zip')
-        if osp.isfile(fpath) and
-        hashlib.md5(open(fpath, 'rb').read()).hexdigest() == self.md5:
+        if osp.isfile(fpath) and \
+                hashlib.md5(open(fpath, 'rb').read()).hexdigest() == self.md5:
             print("Using downloaded file: " + fpath)
         else:
             raise RuntimeError("Please download the dataset manually from {} "

@@ -29,8 +29,7 @@ def get_data(name, split_id, data_dir, height, width, batch_size, workers,
                              std=[0.229, 0.224, 0.225])
 
     train_set = dataset.trainval if combine_trainval else dataset.train
-    num_classes = (dataset.num_trainval_ids if combine_trainval
-                   else dataset.num_train_ids)
+    num_classes = dataset.num_trainval_ids 
 
     train_transformer = T.Compose([
         T.RandomSizedRectCrop(height, width),
@@ -89,30 +88,32 @@ def main(args):
 
     # Create model
     model = models.create(args.arch, num_features=args.features,
-                          dropout=args.dropout, num_classes=num_classes,cut_at_pooling=True)
+                          dropout=args.dropout, num_classes=num_classes)
     start_epoch = best_top1 = 0
+    model = nn.DataParallel(model).cuda()
     if args.resume:
-        checkpoint = load_checkpoint(args.resume)
-        state_dict = get_state_dict(checkpoint['state_dict'],model.state_dict())
+        #checkpoint = load_checkpoint(args.resume)
+        #state_dict = get_state_dict(checkpoint['state_dict'],model.state_dict())
+        #model.load_state_dict(state_dict)
+        #start_epoch = checkpoint['epoch']
+        #best_top1 = checkpoint['best_top1']
+        #print("=> Start epoch {}  best top1 {:.1%}"
+        #      .format(start_epoch, best_top1))
+        state_dict = torch.load(args.resume)
+        state_dict = get_state_dict(state_dict,model.state_dict())
         model.load_state_dict(state_dict)
-        start_epoch = checkpoint['epoch']
-        best_top1 = checkpoint['best_top1']
-        print("=> Start epoch {}  best top1 {:.1%}"
-              .format(start_epoch, best_top1))
-    #model = nn.DataParallel(model).cuda()
-
     # Distance metric
     metric = DistanceMetric(algorithm=args.dist_metric)
 
     # Evaluator
     evaluator = Evaluator(model)
+
     if args.evaluate:
         metric.train(model, train_loader)
         print("Validation:")
         evaluator.evaluate(val_loader, dataset.val, dataset.val, metric)
         print("Test:")
         evaluator.evaluate(test_loader, dataset.query, dataset.gallery, metric)
-        return
 
 
 
