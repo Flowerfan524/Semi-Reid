@@ -1,5 +1,13 @@
-# Open-ReID
+# Self-Paced Co-training Person-ReID
+Pytorch implementaion based on [Open-Reid](https://github.com/Cysu/open-reid.git)
 
+## Run
+```shell
+python examples/spaco.py
+```
+
+
+# Open-ReID
 Open-ReID is a lightweight library of person re-identification for research
 purpose. It aims to provide a uniform interface for different datasets, a full
 set of models and evaluation metrics, as well as examples to reproduce (near)
