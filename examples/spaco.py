@@ -2,10 +2,12 @@ from __future__ import print_function, absolute_import
 from reid.models import model_utils as mu
 from reid.utils.data import data_process as dp
 from reid import datasets
+import reid.models as models
 import copy
 import numpy as np
 import torch
 import argparse
+import os
 
 
 def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
@@ -63,25 +65,34 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
 
             # evaluation current model and save it
             mu.evaluate(model,data,data_params)
-            torch.save(model.state_dict(),save_paths[view] + '.epoch%d' % (step + 1))
+            torch.save(model.state_dict(),save_paths[view] +
+                       '.spaco.epoch%d' % (step + 1))
+
 
 def main(args):
-    dataset_dir = os.path.join(args.
-    dataset = datasets.create(args.dataset,'examples/data/market1501std/')
-    model_names = ['resnet50', 'densenet121']
-    save_path = ['./logs/softmax-loss/market1501/resnet50.spaco',
-                 './logs/softmax-loss/market1501/densenet121.spaco']
-    iter_step = 5
-    spaco(model_names,dataset,save_path,iter_step)
+    assert args.iter_step > 1
+    dataset_dir = os.path.join(args.data_dir, args.dataset)
+    dataset = datasets.create(args.dataset, dataset_dir)
+    model_names = [args.arch1, args.arch2]
+    save_paths = [os.path.join(args.logs_dir, args.arch1),
+                  os.path.join(args.logs_dir, args.arch2)]
+    iter_step = args.iter_step
+    spaco(model_names,dataset,save_paths,iter_step)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Self-paced cotraining Reid')
-    parser.add_argument('-d', '--dataset', type=str, default='market1501std', choices=datasets.names())
+    parser.add_argument('-d', '--dataset', type=str, default='market1501std',
+                        choices=datasets.names())
     parser.add_argument('-b', '--batch-size', type=int, default=64)
-    parser.add_argument('-a1', '--arch1', type=str, default='resnet50', choices=models.names())
-    parser.add_argument('-a2', '--arch2', type=str, default='densenet121', choices=models.names())
+    parser.add_argument('-a1', '--arch1', type=str, default='resnet50',
+                        choices=models.names())
+    parser.add_argument('-a2', '--arch2', type=str, default='densenet121',
+                        choices=models.names())
+    parser.add_argument('-i', '--iter-step' type=int, default=5)
     working_dir = os.path.direname(os.path(__file__))
-    parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir,'data'))
-    parser.add_argument('--logs_dir', type=str, metavar='PATH', default=os.path.join(working_dir,'logs'))
+    parser.add_argument('--data_dir', type=str, metavar='PATH',
+                        default=os.path.join(working_dir,'data'))
+    parser.add_argument('--logs_dir', type=str, metavar='PATH',
+                        default=os.path.join(working_dir,'logs'))
     main(parser.parse_args())
-    
