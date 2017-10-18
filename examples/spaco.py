@@ -5,6 +5,7 @@ from reid import datasets
 import copy
 import numpy as np
 import torch
+import argparse
 
 
 def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
@@ -64,11 +65,23 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3):
             mu.evaluate(model,data,data_params)
             torch.save(model.state_dict(),save_paths[view] + '.epoch%d' % (step + 1))
 
-
-if __name__ == '__main__':
-    dataset = datasets.create('market1501std','examples/data/market1501std/')
+def main(args):
+    dataset_dir = os.path.join(args.
+    dataset = datasets.create(args.dataset,'examples/data/market1501std/')
     model_names = ['resnet50', 'densenet121']
     save_path = ['./logs/softmax-loss/market1501/resnet50.spaco',
                  './logs/softmax-loss/market1501/densenet121.spaco']
     iter_step = 5
     spaco(model_names,dataset,save_path,iter_step)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Self-paced cotraining Reid')
+    parser.add_argument('-d', '--dataset', type=str, default='market1501std', choices=datasets.names())
+    parser.add_argument('-b', '--batch-size', type=int, default=64)
+    parser.add_argument('-a1', '--arch1', type=str, default='resnet50', choices=models.names())
+    parser.add_argument('-a2', '--arch2', type=str, default='densenet121', choices=models.names())
+    working_dir = os.path.direname(os.path(__file__))
+    parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir,'data'))
+    parser.add_argument('--logs_dir', type=str, metavar='PATH', default=os.path.join(working_dir,'logs'))
+    main(parser.parse_args())
+    
