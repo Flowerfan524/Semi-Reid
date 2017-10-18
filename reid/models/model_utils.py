@@ -4,7 +4,7 @@ from reid import models
 from reid.trainers import Trainer
 from reid.evaluators import extract_features, Evaluator
 from reid.dist_metric import DistanceMetric
-from reid.utils.data import spaco_data_process as sdp
+from reid.utils.data import data_process as dp
 import numpy as np
 
 _FEATURE_NUM = 128
@@ -41,6 +41,8 @@ def get_model_by_name(model_name,num_classes):
     elif 'densenet' in model_name:
         model = models.create(model_name,num_features=128,
                               dropout=0.3, num_classes=num_classes)
+    elif 'vgg' in model_name:
+        model = models.create(model_name,num_features=128, dropout=0.3, num_classes=num_classes)
     else:
         raise ValueError('wrong model name, no such model!')
     return model
@@ -101,16 +103,14 @@ def train(model_name,train_data,data_dir,num_classes,epochs=50):
     model = get_model_by_name(model_name,num_classes)
     model = nn.DataParallel(model).cuda()
     data_params = get_params_by_name(model_name)
-    dataloader = sdp.get_dataloader(
+    dataloader = dp.get_dataloader(
         train_data,data_dir,training=True,**data_params)
-    if 'inception' in model_name:
-        epochs = 50
     train_model(model,dataloader,epochs=epochs)
     return model
 
 
 def get_feature(model,data,data_dir,params):
-    dataloader = sdp.get_dataloader(data,data_dir,**params)
+    dataloader = dp.get_dataloader(data,data_dir,**params)
     features,_ = extract_features(model,dataloader)
     return features
 
@@ -133,7 +133,7 @@ def train_predict(model_name,train_data,untrain_data,num_classes,data_dir):
 
 def evaluate(model,dataset,params,metric=None):
     query,gallery = dataset.query,dataset.gallery
-    dataloader = sdp.get_dataloader(
+    dataloader = dp.get_dataloader(
         list(set(dataset.query) | set(dataset.gallery)),
         dataset.images_dir,**params)
     metric = DistanceMetric(algorithm='euclidean')

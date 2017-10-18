@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import
 from reid.models import model_utils as mu
 from reid.utils.data import data_process as dp
 from reid import datasets
-import reid.models as models
+from reid import models
 import copy
 import numpy as np
 import torch
@@ -89,10 +89,10 @@ if __name__ == '__main__':
                         choices=models.names())
     parser.add_argument('-a2', '--arch2', type=str, default='densenet121',
                         choices=models.names())
-    parser.add_argument('-i', '--iter-step' type=int, default=5)
-    working_dir = os.path.direname(os.path(__file__))
-    parser.add_argument('--data_dir', type=str, metavar='PATH',
+    parser.add_argument('-i', '--iter-step', type=int, default=5)
+    working_dir = os.path.dirname(os.path.abspath(__file__))
+    parser.add_argument('--data-dir', type=str, metavar='PATH',
                         default=os.path.join(working_dir,'data'))
-    parser.add_argument('--logs_dir', type=str, metavar='PATH',
+    parser.add_argument('--logs-dir', type=str, metavar='PATH',
                         default=os.path.join(working_dir,'logs'))
     main(parser.parse_args())
