@@ -6,6 +6,8 @@ from reid.evaluators import extract_features, Evaluator
 from reid.dist_metric import DistanceMetric
 from reid.utils.data import data_process as dp
 import numpy as np
+from collections import OrderedDict
+
 
 _FEATURE_NUM = 128
 _DROPOUT = 0.3
@@ -42,7 +44,8 @@ def get_model_by_name(model_name,num_classes):
         model = models.create(model_name,num_features=128,
                               dropout=0.3, num_classes=num_classes)
     elif 'vgg' in model_name:
-        model = models.create(model_name,num_features=128, dropout=0.3, num_classes=num_classes)
+        model = models.create(model_name,num_features=128,
+                              dropout=0.3, num_classes=num_classes)
     else:
         raise ValueError('wrong model name, no such model!')
     return model
@@ -129,6 +132,17 @@ def train_predict(model_name,train_data,untrain_data,num_classes,data_dir):
     data_params = get_params_by_name(model_name)
     pred_prob = predict_prob(model,untrain_data,data_dir,data_params)
     return pred_prob
+
+
+def get_clusters(model,data_loader,num_classes):
+    features, labels = extract_features(model, data_loader)
+    class_features = OrderedDict(list)
+    for k,v in labels.items():
+        class_features[v].append(features[k])
+    clusters = [np.mean(class_features[i],axis=0)
+                for i in range(num_classes)]
+    clusters = torch.from_numpy(np.array(clusters))
+    return torch.autograd.Variable(clusters)
 
 
 def evaluate(model,dataset,params,metric=None):
