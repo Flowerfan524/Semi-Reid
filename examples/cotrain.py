@@ -35,7 +35,7 @@ def cotrain(model_names,data,save_paths,iter_step=1,train_ratio=0.2):
                 model,untrain_data,data_dir,data_params))
             add_ids.append(dp.sel_idx(pred_probs[view], data.train))
             torch.save(model.state_dict(),save_paths[view] +
-                       '.epoch%d' % (step + 1))
+                       '.cotrain.epoch%d' % (step + 1))
             mu.evaluate(model,data,params=data_params)
 
         pred_y = np.argmax(sum(pred_probs), axis=1)

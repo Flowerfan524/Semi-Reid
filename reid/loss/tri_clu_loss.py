@@ -9,8 +9,7 @@ import numpy as np
 class TripletClusteringLoss(nn.Module):
     def __init__(self, clusters, margin=0,):
         super(TripletClusteringLoss, self).__init__()
-        assert isinstance(clusters, torch.autograd.Variable),
-        'clusters must be torch Variable'
+        assert isinstance(clusters, torch.autograd.Variable)
         self.clusters = clusters
         self.margin = margin
         self.ranking_loss = nn.MarginRankingLoss(margin=margin)
