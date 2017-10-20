@@ -3,7 +3,11 @@ Pytorch implementaion based on [Open-Reid](https://github.com/Cysu/open-reid.git
 
 ## Run
 ```shell
-python examples/spaco.py
+bash spaco.sh
+```
+alternatively, 
+```shell
+python examples/spaco --arch1 resnet50 --arch2 densenet121 --iter-step 5 --dataset market1501std --logs-dir logs/
 ```
 
 

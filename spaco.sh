@@ -1,6 +1,6 @@
 DATASET=market1501std
 ARCH1=resnet50
-ARCH2=vgg16
+ARCH2=densenet121
 BATCH_SIZE=32
 LOGSDIR=logs
 
