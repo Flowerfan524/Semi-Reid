@@ -11,14 +11,14 @@ import os
 
 def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3,train_ratio=0.2):
     """
-    cotrain model:
+    self-paced co-training model implementation based on Pytroch
     params:
-    model_name1: first view of co-train model
-    model_name2: second view of co-train model
+    model_names: model names for spaco, such as ['resnet50','densenet121']
     data: dataset for spaco model
-
-    return:
-    trained model1, model2
+    save_pathts: save paths for two models
+    iter_step: iteration round for spaco
+    gamma: spaco hyperparameter
+    train_ratio: initiate training dataset ratio
     """
     assert iter_step >= 1
     assert len(model_names) == 2 and len(save_paths) == 2
