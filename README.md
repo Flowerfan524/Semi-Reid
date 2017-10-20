@@ -5,9 +5,9 @@ Pytorch implementaion based on [Open-Reid](https://github.com/Cysu/open-reid.git
 ```shell
 bash spaco.sh
 ```
-alternatively, 
+alternatively, you can run with 
 ```shell
-python examples/spaco --arch1 resnet50 --arch2 densenet121 --iter-step 5 --dataset market1501std --logs-dir logs/
+python examples/spaco.py --arch1 resnet50 --arch2 densenet121 --iter-step 5 --dataset market1501std --logs-dir logs/
 ```
 
 
