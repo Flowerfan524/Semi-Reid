@@ -13,7 +13,7 @@ python examples/spaco.py --arch1 resnet50 --arch2 densenet121 --iter-step 5 --da
 Please cite spaco in your publications if it helps your research:  
 @inproceedings{ma2017self,  
   title={Self-Paced Co-training},   
-  author={Ma, Fan and Meng, Deyu and Xie, Qi and Li, Zina and Dong, Xuanyi}, 
+  author={Ma, Fan and Meng, Deyu and Xie, Qi and Li, Zina and Dong, Xuanyi},  
   booktitle={International Conference on Machine Learning},  
   pages={2275--2284},  
   year={2017}  
