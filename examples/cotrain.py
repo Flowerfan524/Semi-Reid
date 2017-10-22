@@ -45,6 +45,7 @@ def cotrain(model_names,data,save_paths,iter_step=1,train_ratio=0.2):
 
 
 def main(args):
+    print(args.iter_step)
     assert args.iter_step >= 1
     dataset_dir = os.path.join(args.data_dir, args.dataset)
     dataset = datasets.create(args.dataset, dataset_dir)
