@@ -13,12 +13,12 @@ def cotrain(model_names,data,save_paths,iter_step=1,train_ratio=0.2):
     """
     cotrain model:
     params:
-    model_name1: first view of co-train model
-    model_name2: second view of co-train model
-    data: dataset for spaco model
+    model_names: model names such as ['resnet50','densenet121']
+    data: dataset include train and untrain data
+    save_paths: paths for storing models
+    iter_step: maximum iteration steps
+    train_ratio: labeled data ratio
 
-    return:
-    trained model1, model2
     """
     assert iter_step >= 1
     assert len(model_names) == 2 and len(save_paths) == 2
