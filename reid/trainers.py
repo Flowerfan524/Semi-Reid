@@ -58,6 +58,9 @@ class BaseTrainer(object):
     def _forward(self, inputs, targets):
         raise NotImplementedError
 
+    def update_criterion(self, criterion):
+        self.criterion = criterion
+
 
 class Trainer(BaseTrainer):
     def _parse_data(self, inputs):
