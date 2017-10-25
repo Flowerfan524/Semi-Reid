@@ -19,7 +19,7 @@ from reid.utils.data import transforms as T
 from reid.utils.data.preprocessor import Preprocessor
 from reid.utils.logging import Logger
 from reid.utils.serialization import load_checkpoint, save_checkpoint
-from reid.mdels import model_utils as mu
+from reid.models import model_utils as mu
 
 
 def get_data(name, split_id, data_dir, height, width, batch_size, workers,
