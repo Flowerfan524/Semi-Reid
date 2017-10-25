@@ -136,9 +136,10 @@ def train_predict(model_name,train_data,untrain_data,num_classes,data_dir):
 
 def get_clusters(model,data_loader,num_classes):
     features, labels = extract_features(model, data_loader)
+    assert np.unique(labels.values()) == num_classes
     class_features = defaultdict(list)
     for k,v in labels.items():
-        class_features[v].append(features[k])
+        class_features[v].append(features[k].numpy())
     clusters = [np.mean(class_features[i],axis=0)
                 for i in range(num_classes)]
     clusters = torch.from_numpy(np.array(clusters, dtype='float32'))
