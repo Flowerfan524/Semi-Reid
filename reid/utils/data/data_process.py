@@ -7,9 +7,10 @@ from reid.utils.data.preprocessor import Preprocessor
 def get_dataloader(dataset,data_dir,
                    training=False, height=256,
                    width=128, batch_size=64, workers=1):
+    if len(dataset[0]) == 3:
+        dataset = add_sample_weights(dataset)
     normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
-
     if training:
         transformer = T.Compose([
             T.RandomSizedRectCrop(height, width),
@@ -31,9 +32,21 @@ def get_dataloader(dataset,data_dir,
     return data_loader
 
 
-def update_train_untrain(sel_idx,train_data,untrain_data,pred_y):
+def add_sample_weights(data, weights=None):
+    assert isinstance(data[0], tuple)
+    if weights is None:
+        weights = np.ones(len(0))
+    new_data = [(*sample, weight) for sample, weight in zip(data, weights)]
+    return new_data
+
+
+def update_train_untrain(sel_idx,train_data,untrain_data,pred_y,
+                         weights=None):
     assert len(train_data[0]) == len(untrain_data[0])
-    add_data = [(untrain_data[i][0],int(pred_y[i]),untrain_data[i][2])
+    if weights is None:
+        weights = np.ones(len(untrain_data))
+    add_data = [(untrain_data[i][0],int(pred_y[i]),
+                 untrain_data[i][2],weights[i])
                 for i,flag in enumerate(sel_idx) if flag]
     data1 = [untrain_data[i]
              for i,flag in enumerate(sel_idx) if not flag]
@@ -58,6 +71,23 @@ def sel_idx(score,train_data,ratio=0.5):
     return add_indices.astype('bool')
 
 
+def get_lambda_class(score,pred_y,train_data,ratio=0.5):
+    y = np.array([label for _,label,_ in train_data])
+    lambdas = np.zeros(score.shape[0])
+    clss = np.unique(y)
+    assert score.shape[1] == len(clss)
+    count_per_class = [sum(y == c) for c in clss]
+    for cls in range(len(clss)):
+        indices = np.where(pred_y == cls)[0]
+        if len(indices) == 0:
+            continue
+        cls_score = score[indices,cls]
+        idx = min(int(np.ceil(count_per_class[cls] * ratio)),
+                  indices.shape[0])
+        lambdas[cls] = cls_score[idx]
+    return lambdas
+
+
 def split_dataset(dataset,train_ratio=0.2,seed=0):
     """
     split dataset to train_set and untrain_set
@@ -79,3 +109,7 @@ def split_dataset(dataset,train_ratio=0.2,seed=0):
     cls2 = np.unique([d[1] for d in untrain_set])
     assert len(cls1) == len(cls2) and len(cls1) == 751
     return train_set,untrain_set
+
+
+def update_weights(pred_probs, gamma, weights=None):
+    pred_y = np.max(pred_probs, axis=1)

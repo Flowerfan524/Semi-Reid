@@ -10,6 +10,8 @@ class Preprocessor(object):
         self.dataset = dataset
         self.root = root
         self.transform = transform
+        assert len(dataset) > 0
+        self.num_col = len(dataset[0])
 
     def __len__(self):
         return len(self.dataset)
@@ -20,11 +22,15 @@ class Preprocessor(object):
         return self._get_single_item(indices)
 
     def _get_single_item(self, index):
-        fname, pid, camid = self.dataset[index]
+        if self.um_col is 4:
+            fname, pid, camid, weight = self.dataset[index]
+        elif self.num_col is 3:
+            fname, pid, camid = self.dataset[index]
+            weight = 1
         fpath = fname
         if self.root is not None:
             fpath = osp.join(self.root, fname)
         img = Image.open(fpath).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
-        return img, fname, pid, camid
+        return img, fname, pid, camid, weight

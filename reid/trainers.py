@@ -5,7 +5,7 @@ import torch
 from torch.autograd import Variable
 
 from .evaluation_metrics import accuracy
-from .loss import OIMLoss, TripletLoss
+from .loss import OIMLoss, TripletLoss, SoftCrossEntropyLoss
 from .utils.meters import AverageMeter
 
 
@@ -27,8 +27,8 @@ class BaseTrainer(object):
         for i, inputs in enumerate(data_loader):
             data_time.update(time.time() - end)
 
-            inputs, targets = self._parse_data(inputs)
-            loss, prec1 = self._forward(inputs, targets)
+            inputs, targets, weights = self._parse_data(inputs)
+            loss, prec1 = self._forward(inputs, targets, weights)
 
             losses.update(loss.data[0], targets.size(0))
             precisions.update(prec1, targets.size(0))
@@ -64,12 +64,13 @@ class BaseTrainer(object):
 
 class Trainer(BaseTrainer):
     def _parse_data(self, inputs):
-        imgs, _, pids, _ = inputs
+        imgs, _, pids, _, weights = inputs
         inputs = [Variable(imgs)]
         targets = Variable(pids.cuda())
-        return inputs, targets
+        weights = Variable(weights.cuda())
+        return inputs, targets, weights
 
-    def _forward(self, inputs, targets):
+    def _forward(self, inputs, targets, weights=None):
         outputs = self.model(*inputs)
         if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
             loss = self.criterion(outputs, targets)
@@ -81,6 +82,10 @@ class Trainer(BaseTrainer):
             prec = prec[0]
         elif isinstance(self.criterion, TripletLoss):
             loss, prec = self.criterion(outputs, targets)
+        elif isinstance(self.criterion, SoftCrossEntropyLoss):
+            loss = self.criterion(outputs, targets, weights)
+            prec, = accuracy(outputs.data, targets.data)
+            prec = prec[0]
         else:
             raise ValueError("Unsupported loss:", self.criterion)
         return loss, prec
