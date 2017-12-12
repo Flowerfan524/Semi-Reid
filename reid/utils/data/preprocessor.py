@@ -22,7 +22,7 @@ class Preprocessor(object):
         return self._get_single_item(indices)
 
     def _get_single_item(self, index):
-        if self.um_col is 4:
+        if self.num_col is 4:
             fname, pid, camid, weight = self.dataset[index]
         elif self.num_col is 3:
             fname, pid, camid = self.dataset[index]
