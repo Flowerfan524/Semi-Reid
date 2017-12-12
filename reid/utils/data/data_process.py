@@ -4,31 +4,36 @@ from torch.utils.data import DataLoader
 from reid.utils.data.preprocessor import Preprocessor
 
 
-def get_dataloader(dataset,data_dir,
-                   training=False, height=256,
-                   width=128, batch_size=64, workers=1):
+def get_dataloader(dataset, data_dir, config):
     if len(dataset[0]) == 3:
         dataset = add_sample_weights(dataset)
     normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
-    if training:
+    if config.training:
         transformer = T.Compose([
-            T.RandomSizedRectCrop(height, width),
+            T.RandomSizedRectCrop(config.height, config.width),
             T.RandomHorizontalFlip(),
             T.ToTensor(),
             normalizer,
         ])
     else:
         transformer = T.Compose([
-            T.RectScale(height, width),
+            T.RectScale(config.height, config.width),
             T.ToTensor(),
             normalizer,
         ])
+    sampler = None
+    if config.sampler:
+        sampler = config.sampler(dataset, config.num_instances)
     data_loader = DataLoader(
         Preprocessor(dataset, root=data_dir,
                      transform=transformer),
-        batch_size=batch_size, num_workers=workers,
-        shuffle=training, pin_memory=True, drop_last=training)
+        batch_size=config.batch_size,
+        num_workers=config.workers,
+        shuffle=config.shuffle,
+        sampler=sampler,
+        pin_memory=True,
+        drop_last=config.training)
     return data_loader
 
 
@@ -40,7 +45,7 @@ def add_sample_weights(data, weights=None):
     return new_data
 
 
-def update_train_untrain(sel_idx,train_data,untrain_data,pred_y,
+def update_train_untrain(sel_idx, train_data, untrain_data, pred_y,
                          weights=None):
     assert len(train_data[0]) == len(untrain_data[0])
     if weights is None:
@@ -54,13 +59,13 @@ def update_train_untrain(sel_idx,train_data,untrain_data,pred_y,
     return data2, data1
 
 
-def sel_idx(score,train_data,ratio=0.5):
+def sel_idx(score, train_data, ratio=0.5):
     y = np.array([label for _,label,_ in train_data])
     add_indices = np.zeros(score.shape[0])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
     count_per_class = [sum(y == c) for c in clss]
-    pred_y = np.argmax(score,axis=1)
+    pred_y = np.argmax(score, anyaxis=1)
     for cls in range(len(clss)):
         indices = np.where(pred_y == cls)[0]
         cls_score = score[indices,cls]
@@ -71,7 +76,7 @@ def sel_idx(score,train_data,ratio=0.5):
     return add_indices.astype('bool')
 
 
-def get_lambda_class(score,pred_y,train_data,ratio=0.5):
+def get_lambda_class(score, pred_y, train_data, ratio=0.5):
     y = np.array([label for _,label,_ in train_data])
     lambdas = np.zeros(score.shape[0])
     clss = np.unique(y)
@@ -88,7 +93,7 @@ def get_lambda_class(score,pred_y,train_data,ratio=0.5):
     return lambdas
 
 
-def split_dataset(dataset,train_ratio=0.2,seed=0):
+def split_dataset(dataset, train_ratio=0.2, seed=0):
     """
     split dataset to train_set and untrain_set
     """
