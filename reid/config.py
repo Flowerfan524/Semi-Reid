@@ -41,6 +41,10 @@ class TripletConfig(Config):
     loss_name = 'triplet'
     # quantity of each identity in one training batch
     num_instances = 4
+    num_classes = 128
+    num_features = 1024
+    epochs = 150
+    dropout = 0
 
     # margin of triplet loss
     margin = 0.5

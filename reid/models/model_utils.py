@@ -48,7 +48,7 @@ def train_model(model, dataloader, config):
     # schedule learning rate
     def adjust_lr(epoch):
         step_size = 40
-        lr = 0.1 * (0.1 ** (epoch // step_size))
+        lr = config.lr * (0.1 ** (epoch // step_size))
         for g in optimizer.param_groups:
             g['lr'] = lr * g.get('lr_mult', 1)
 
