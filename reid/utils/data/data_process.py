@@ -40,7 +40,8 @@ def get_dataloader(dataset, data_dir, config):
 def add_sample_weights(data, weights=None):
     assert isinstance(data[0], tuple)
     if weights is None:
-        weights = np.ones(len(0))
+        weights = np.ones(len(data))
+    assert len(data) == len(weights)
     new_data = [(*sample, weight) for sample, weight in zip(data, weights)]
     return new_data
 

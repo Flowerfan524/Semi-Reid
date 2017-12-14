@@ -3,8 +3,8 @@ from reid.utils.data.sampler import RandomIdentitySampler
 
 class Config(object):
 
-    model_name = 'Resnet50'
-    loss_name = 'Softmax'
+    model_name = 'resnet50'
+    loss_name = 'softmax'
     logs_dir = './logs'
     num_classes = 751
 
@@ -22,6 +22,7 @@ class Config(object):
     lr = 0.1
     momentum = 0.9
     weight_decay = 5e-4
+    sampler = None
 
     #resume dir
     checkpoints = None
