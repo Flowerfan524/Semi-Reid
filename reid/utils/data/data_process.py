@@ -23,7 +23,7 @@ def get_dataloader(dataset, data_dir, config):
             normalizer,
         ])
     sampler = None
-    if config.sampler:
+    if config.training and config.sampler:
         sampler = config.sampler(dataset, config.num_instances)
     data_loader = DataLoader(
         Preprocessor(dataset, root=data_dir,

@@ -45,6 +45,9 @@ class TripletConfig(Config):
     # margin of triplet loss
     margin = 0.5
 
+    lr = 0.0002
+
+
     if Config.training:
         sampler = RandomIdentitySampler
         shuffle = False
