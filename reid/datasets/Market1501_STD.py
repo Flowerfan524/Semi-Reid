@@ -17,9 +17,9 @@ def _pluck(identities, indices, relabel=False):
                 x, y, _ = map(int, name.split('_'))
                 assert pid == x and camid == y
                 if relabel:
-                    ret.append((fname, index, camid))
+                    ret.append((fname, index, camid, 1))
                 else:
-                    ret.append((fname, pid, camid))
+                    ret.append((fname, pid, camid, 1))
     return ret
 
 
@@ -67,7 +67,7 @@ class Market1501_STD(Dataset):
         def get_pid_camid(fname):
             name = osp.splitext(fname)[0]
             pid,cam,_ = map(int,name.split('_'))
-            return (fname,pid,cam)
+            return (fname,pid,cam,1)
 
         self.query = [get_pid_camid(fname)
                       for fname in self.split['query']]

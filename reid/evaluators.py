@@ -51,8 +51,8 @@ def pairwise_distance(features, query=None, gallery=None, metric=None):
         dist = dist.expand(n, n) - 2 * torch.mm(x, x.t())
         return dist
 
-    x = torch.cat([features[f].unsqueeze(0) for f, _, _ in query], 0)
-    y = torch.cat([features[f].unsqueeze(0) for f, _, _ in gallery], 0)
+    x = torch.cat([features[f].unsqueeze(0) for f, _, _, _ in query], 0)
+    y = torch.cat([features[f].unsqueeze(0) for f, _, _, _ in gallery], 0)
     m, n = x.size(0), y.size(0)
     x = x.view(m, -1)
     y = y.view(n, -1)
@@ -70,10 +70,10 @@ def evaluate_all(distmat, query=None, gallery=None,
                  query_cams=None, gallery_cams=None,
                  cmc_topk=(1, 5, 10)):
     if query is not None and gallery is not None:
-        query_ids = [pid for _, pid, _ in query]
-        gallery_ids = [pid for _, pid, _ in gallery]
-        query_cams = [cam for _, _, cam in query]
-        gallery_cams = [cam for _, _, cam in gallery]
+        query_ids = [pid for _, pid, _, _ in query]
+        gallery_ids = [pid for _, pid, _, _ in gallery]
+        query_cams = [cam for _, _, cam, _ in query]
+        gallery_cams = [cam for _, _, cam, _ in gallery]
     else:
         assert (query_ids is not None and gallery_ids is not None
                 and query_cams is not None and gallery_cams is not None)
