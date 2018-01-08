@@ -61,12 +61,12 @@ def update_train_untrain(sel_idx, train_data, untrain_data, pred_y,
 
 
 def sel_idx(score, train_data, ratio=0.5):
-    y = np.array([label for _,label,_ in train_data])
+    y = np.array([label for _,label,_,_ in train_data])
     add_indices = np.zeros(score.shape[0])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
     count_per_class = [sum(y == c) for c in clss]
-    pred_y = np.argmax(score, anyaxis=1)
+    pred_y = np.argmax(score, axis=1)
     for cls in range(len(clss)):
         indices = np.where(pred_y == cls)[0]
         cls_score = score[indices,cls]
@@ -78,7 +78,7 @@ def sel_idx(score, train_data, ratio=0.5):
 
 
 def get_lambda_class(score, pred_y, train_data, ratio=0.5):
-    y = np.array([label for _,label,_ in train_data])
+    y = np.array([label for _,label,_,_ in train_data])
     lambdas = np.zeros(score.shape[0])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
