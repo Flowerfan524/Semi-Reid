@@ -5,7 +5,7 @@ class Config(object):
 
     model_name = 'resnet50'
     loss_name = 'softmax'
-    logs_dir = './logs'
+    logs_dir = './logs/'
     num_classes = 751
 
     # resize height and width
@@ -29,11 +29,15 @@ class Config(object):
 
     #training flag
     training = True
-    shuffle = training
+    shuffle = True
     evaluate = False
 
     # distance metric
     dist_metric = 'euclidean'
+
+    def set_training(self, state):
+        self.training = state
+        self.shuffle = state
 
 
 class TripletConfig(Config):
@@ -48,10 +52,13 @@ class TripletConfig(Config):
 
     # margin of triplet loss
     margin = 0.5
+    shuffle = False
 
     lr = 0.0002
 
 
     if Config.training:
         sampler = RandomIdentitySampler
-        shuffle = False
+
+    def set_training(self, state):
+        self.training = state

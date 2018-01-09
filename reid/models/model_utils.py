@@ -47,7 +47,7 @@ def train_model(model, dataloader, config):
 
     # schedule learning rate
     def adjust_lr(epoch):
-        step_size = 100
+        step_size = 40
         lr = config.lr * (0.1 ** (epoch // step_size))
         for g in optimizer.param_groups:
             g['lr'] = lr * g.get('lr_mult', 1)
@@ -66,7 +66,7 @@ def train(train_data, data_dir, config):
     model = nn.DataParallel(model).cuda()
     dataloader = dp.get_dataloader(train_data, data_dir, config)
     train_model(model, dataloader, config)
-    config.training = False
+    config.set_training(False)
     return model
 
 

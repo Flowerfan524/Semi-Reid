@@ -50,7 +50,7 @@ def update_train_untrain(sel_idx, train_data, untrain_data, pred_y,
                          weights=None):
     assert len(train_data[0]) == len(untrain_data[0])
     if weights is None:
-        weights = np.ones(len(untrain_data))
+        weights = [1 for i in range(len(untrain_data))]
     add_data = [(untrain_data[i][0],int(pred_y[i]),
                  untrain_data[i][2],weights[i])
                 for i,flag in enumerate(sel_idx) if flag]
