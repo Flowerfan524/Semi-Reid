@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from .inception import *
 from .resnet import *
+from .resnet_m import *
 from .vgg import *
 from .inception_v3 import *
 from .densenet import *
@@ -15,6 +16,11 @@ __factory = {
     'resnet50': resnet50,
     'resnet101': resnet101,
     'resnet152': resnet152,
+    'resnet18m': resnet18m,
+    'resnet34m': resnet34m,
+    'resnet50m': resnet50m,
+    'resnet101m': resnet101m,
+    'resnet152m': resnet152m,
     'vgg11': vgg11,
     'vgg13': vgg13,
     'vgg16': vgg16,
