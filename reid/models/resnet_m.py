@@ -45,9 +45,10 @@ class ResNetM(nn.Module):
             if self.has_embedding:
                 self.feat = nn.Linear(out_planes, self.num_features)
                 self.feat_bn = nn.BatchNorm1d(self.num_features)
-                init.kaiming_normal(self.feat.weight, mode='fan_out')
+                init.kaiming_normal(self.feat.weight,a=0, mode='fan_out')
                 init.constant(self.feat.bias, 0)
-                init.constant(self.feat_bn.weight, 1)
+                # init.constant(self.feat_bn.weight, 1)
+                init.normal(self.feat_bn.weight, mean=1, std=0.02)
                 init.constant(self.feat_bn.bias, 0)
             else:
                 # Change the num_features to CNN output channels
