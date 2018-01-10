@@ -25,8 +25,8 @@ def train_model(model, dataloader, config):
         new_params = [p for p in model.parameters() if
                       id(p) not in base_param_ids]
         param_groups = [
-            {'params': model.module.base.parameters(), 'lr_mult': 0.1},
-            {'params': new_params, 'lr_mult': 1.0}]
+            {'params': model.module.base.parameters(), 'lr_mult': 0.01},
+            {'params': new_params, 'lr_mult': 0.1}]
     else:
         param_groups = model.parameters()
 

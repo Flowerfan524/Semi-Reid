@@ -20,7 +20,8 @@ def get_dataloader(dataset, data_dir, config):
         ])
     else:
         transformer = T.Compose([
-            T.RectScale(config.height, config.width),
+            #T.RectScale(config.height, config.width),
+            T.Resize((config.height, config.width)),
             T.ToTensor(),
             normalizer,
         ])
