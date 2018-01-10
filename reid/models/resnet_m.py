@@ -77,7 +77,6 @@ class ResNetM(nn.Module):
         if self.has_embedding:
             x = self.feat(x)
             x = self.feat_bn(x)
-            x = self.nonlinear(x)
         if self.norm:
             x = F.normalize(x)
         elif self.has_embedding:
