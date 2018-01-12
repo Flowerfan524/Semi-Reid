@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from reid import models
+from torch.optim import lr_scheduler
 from reid.trainers import Trainer
 from reid.evaluators import extract_features, Evaluator
 from reid.loss import TripletLoss
@@ -25,14 +26,14 @@ def train_model(model, dataloader, config):
         new_params = [p for p in model.parameters() if
                       id(p) not in base_param_ids]
         param_groups = [
-            {'params': model.module.base.parameters(), 'lr_mult': 0.01},
-            {'params': new_params, 'lr_mult': 0.1}]
+            {'params': model.module.base.parameters(), 'lr': 0.01},
+            {'params': new_params, 'lr': 0.1}]
     else:
         param_groups = model.parameters()
 
     if config.loss_name is 'softmax':
         criterion = nn.CrossEntropyLoss().cuda()
-        optimizer = torch.optim.SGD(param_groups, lr=config.lr,
+        optimizer = torch.optim.SGD(param_groups,
                                     momentum=config.momentum,
                                     weight_decay=config.weight_decay,
                                     nesterov=True)
@@ -52,8 +53,10 @@ def train_model(model, dataloader, config):
         for g in optimizer.param_groups:
             g['lr'] = lr * g.get('lr_mult', 1)
 
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.1)
     for epoch in range(config.epochs):
-        adjust_lr(epoch)
+        #adjust_lr(epoch)
+        scheduler.step()
         trainer.train(epoch, dataloader, optimizer)
 
 

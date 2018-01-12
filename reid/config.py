@@ -1,11 +1,12 @@
 
+import os
 from reid.utils.data.sampler import RandomIdentitySampler
 
 class Config(object):
 
     model_name = 'resnet50'
     loss_name = 'softmax'
-    logs_dir = './logs/'
+    logs_dir = 'logs'
     num_classes = 751
 
     # resize height and width

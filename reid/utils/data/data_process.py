@@ -11,9 +11,10 @@ def get_dataloader(dataset, data_dir, config):
                              std=[0.229, 0.224, 0.225])
     if config.training:
         transformer = T.Compose([
-            # T.RandomSizedRectCrop(config.height, config.width),
-            T.Resize(144, interpolation=3),
-            T.RandomCrop((config.height, config.width)),
+             T.RandomSizedRectCrop(config.height, config.width),
+            #T.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0),
+            #T.Resize(144, interpolation=3),
+            #T.RandomCrop((config.height, config.width)),
             T.RandomHorizontalFlip(),
             T.ToTensor(),
             normalizer,
