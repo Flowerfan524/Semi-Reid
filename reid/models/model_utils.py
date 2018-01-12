@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.autograd import Variable
 from reid import models
 from torch.optim import lr_scheduler
 from reid.trainers import Trainer
@@ -7,6 +8,7 @@ from reid.evaluators import extract_features, Evaluator
 from reid.loss import TripletLoss
 from reid.dist_metric import DistanceMetric
 from reid.utils.data import data_process as dp
+from reid.utils import to_torch, to_numpy
 import numpy as np
 from collections import defaultdict
 
@@ -82,14 +84,16 @@ def get_feature(model, data, data_dir, config):
 
 
 def predict_prob(model, data, data_dir, config):
-    features = get_feature(model, data, data_dir, config)
-    prob = nn.functional.softmax(features, dim = 1)
-    predict_prob = prob.numpy()
-    #logits = np.array([logit.numpy() for logit in features.values()])
-    #exp_logits = np.exp(logits)
-    #predict_prob = exp_logits / np.sum(exp_logits,axis=1).reshape((-1,1))
-    #assert len(logits) == len(predict_prob)
-    return predict_prob
+    dataloader = dp.get_dataloader(data, data_dir, config)
+    probs = []
+    for i, (imgs, _, _, _) in enumerate(dataloader):
+        inputs = to_torch(imgs)
+        inputs = Variable(inputs, volatile=True)
+        output = model(inputs)
+        prob = nn.functional.softmax(output, dim=1)
+        probs += [prob.data.cpu().numpy()]
+    np.concatenate(probs)
+    return probs
 
 
 def train_predict(train_data, untrain_data, data_dir, config):
