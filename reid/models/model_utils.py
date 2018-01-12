@@ -76,15 +76,19 @@ def train(train_data, data_dir, config):
 def get_feature(model, data, data_dir, config):
     dataloader = dp.get_dataloader(data, data_dir, config)
     features, _ = extract_features(model, dataloader)
+    features = [v for k,v in features.items()]
+    features = torch.cat(features)
     return features
 
 
 def predict_prob(model, data, data_dir, config):
     features = get_feature(model, data, data_dir, config)
-    logits = np.array([logit.numpy() for logit in features.values()])
-    exp_logits = np.exp(logits)
-    predict_prob = exp_logits / np.sum(exp_logits,axis=1).reshape((-1,1))
-    assert len(logits) == len(predict_prob)
+    prob = nn.functional.softmax(features, dim = 1)
+    predict_prob = prob.numpy()
+    #logits = np.array([logit.numpy() for logit in features.values()])
+    #exp_logits = np.exp(logits)
+    #predict_prob = exp_logits / np.sum(exp_logits,axis=1).reshape((-1,1))
+    #assert len(logits) == len(predict_prob)
     return predict_prob
 
 
