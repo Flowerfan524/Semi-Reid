@@ -86,13 +86,13 @@ def get_feature(model, data, data_dir, config):
 def predict_prob(model, data, data_dir, config):
     dataloader = dp.get_dataloader(data, data_dir, config)
     probs = []
-    for i, (imgs, _, _, _) in enumerate(dataloader):
+    for i, (imgs, _, _, _, _) in enumerate(dataloader):
         inputs = to_torch(imgs)
         inputs = Variable(inputs, volatile=True)
         output = model(inputs)
         prob = nn.functional.softmax(output, dim=1)
         probs += [prob.data.cpu().numpy()]
-    np.concatenate(probs)
+    probs = np.concatenate(probs)
     return probs
 
 
