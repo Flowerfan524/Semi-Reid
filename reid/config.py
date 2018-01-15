@@ -26,7 +26,7 @@ class Config(object):
     sampler = None
 
     #resume dir
-    checkpoints = None
+    checkpoint = None
 
     #training flag
     training = True

@@ -68,6 +68,7 @@ def train(train_data, data_dir, config):
                           num_features=config.num_features,
                           dropout=config.dropout,
                           num_classes=config.num_classes)
+    #model = model.cuda()
     model = nn.DataParallel(model).cuda()
     dataloader = dp.get_dataloader(train_data, data_dir, config)
     train_model(model, dataloader, config)
@@ -84,6 +85,7 @@ def get_feature(model, data, data_dir, config):
 
 
 def predict_prob(model, data, data_dir, config):
+    model.eval()
     dataloader = dp.get_dataloader(data, data_dir, config)
     probs = []
     for i, (imgs, _, _, _, _) in enumerate(dataloader):
