@@ -1,31 +1,30 @@
 from __future__ import print_function, absolute_import
 from reid.models import model_utils as mu
 from reid.utils.data import data_process as dp
+from reid.utils.serialization import load_checkpoint, save_checkpoint
 from reid import datasets
 from reid import models
+from reid.config improt Config
 import numpy as np
 import torch
 import argparse
 import os
 
 
-def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3,train_ratio=0.2):
+def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
     params:
-    model_names: model names for spaco, such as ['resnet50','densenet121']
+    configs: model configs for spaco
     data: dataset for spaco model
     save_pathts: save paths for two models
     iter_step: iteration round for spaco
     gamma: spaco hyperparameter
     train_ratio: initiate training dataset ratio
     """
-    assert iter_step >= 1
-    assert len(model_names) == 2 and len(save_paths) == 2
-    num_view = len(model_names)
+    num_view = len(configs)
     train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio)
     data_dir = data.images_dir
-    num_classes = data.num_trainval_ids
     ###########
     # initiate classifier to get preidctions
     ###########
@@ -33,13 +32,31 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3,train_ratio=0.2):
     add_ratio = 0.5
     pred_probs = []
     add_ids = []
+    start_step = 0
     for view in range(num_view):
-        pred_probs.append(mu.train_predict(
-            model_names[view],train_data,untrain_data,num_classes,data_dir))
+        if configs[view].checkpoint is None:
+            model = mu.train(train_data, data_dir, configs[view])
+            save_checkpoint({
+                'state_dict': model.state_dict(),
+                'epoch': 0}, False,
+                fpath=os.path.join(configs[view].logs_dir,
+                                   configs[view].model_name, 'spaco.epoch0')
+            )
+        else:
+            model = models.create(configs[view].model_name,
+                                  num_features=configs[view].num_features,
+                                  dropout=configs[view].dropout,
+                                  num_classes=configs[view].num_classes)
+            checkpoint = load_checkpoint(configs[view].checkpoint)
+            model.load_state_dict(checkpoint['state_dict'])
+            start_step = checkpoint['epoch']
+            configs[view].set_training(False)
+            mu.evaluate(model, data, configs[view])
+            configs[view].set_training(True)
+        pred_probs.append(mu.predict_prob(model, untrain_data, data_dir, configs[view]))
         add_ids.append(dp.sel_idx(pred_probs[view], train_data, add_ratio))
     pred_y = np.argmax(sum(pred_probs), axis=1)
-
-    for step in range(iter_step):
+    for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
             ov = add_ids[1 - view]
@@ -47,36 +64,52 @@ def spaco(model_names,data,save_paths,iter_step=1,gamma=0.3,train_ratio=0.2):
             add_id = dp.sel_idx(pred_probs[view],train_data, add_ratio)
 
             # update w_view
-            new_train_data,_ = dp.update_train_untrain(
-                add_id,train_data,untrain_data,pred_y)
-            model = mu.train(model_names[view],new_train_data,
-                             data_dir,num_classes)
+            new_train_data,_ = dp.update_train_untrain(add_id,train_data,untrain_data,pred_y)
+            configs[view].set_training(True)
+            model = mu.train(new_train_data, data_dir, configs[view])
 
             # update y
-            data_params = mu.get_params_by_name(model_names[view])
-            pred_probs[view] = mu.predict_prob(
-                model,untrain_data,data_dir,data_params)
+            pred_probs[view] = mu.predict_prob(model,untrain_data,data_dir, configs[view])
             pred_y = np.argmax(sum(pred_probs),axis=1)
 
             # udpate v_view for next view
             add_ratio += 0.5
             add_ids[view] = dp.sel_idx(pred_probs[view], train_data,add_ratio)
 
-            # evaluation current model and save it
-            mu.evaluate(model,data,data_params)
-            torch.save(model.state_dict(),save_paths[view] +
-                       '.spaco.epoch%d' % (step + 1))
-
+#             evaluation current model and save it
+            mu.evaluate(model,data,configs[view])
+            save_checkpoint({
+                'state_dict': model.state_dict(),
+                'epoch': step +1}, False,
+                fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'spaco.epoch%d' % (step + 1))
+            )
 
 def main(args):
-    assert args.iter_step >= 1
-    dataset_dir = os.path.join(args.data_dir, args.dataset)
-    dataset = datasets.create(args.dataset, dataset_dir)
-    model_names = [args.arch1, args.arch2]
-    save_paths = [os.path.join(args.logs_dir, args.arch1),
-                  os.path.join(args.logs_dir, args.arch2)]
-    spaco(model_names,dataset,save_paths,args.iter_step,
-          args.gamma,args.train_ratio)
+    config1 = Config()
+    config2 = Config()
+    config1.model_name = args.arch1
+    config2.model_name = args.arch2
+    config2.height = 224
+    config2.width = 224
+    config1.batch_size = 32
+    config2.batch_size = 32
+    config1.epochs = 50
+    config2.epochs = 50
+    config1.logs_dir = args.logs_dir
+    config2.logs_dir = args.logs_dir
+    #config1.checkpoint = 'logs/resnet50/spaco.epoch1'
+    #config2.checkpoint = 'logs/densenet121/spaco.epoch1'
+    config1.num_features = 512
+    config2.num_features = 512
+    dataset = args.dataset
+    cur_path = os.getcwd()
+    data_dir = os.path.join(cur_path,'data',dataset)
+    data = datasets.create(dataset, data_dir)
+
+    spaco([config1,config2], data,
+          iter_step=args.iter_step,
+          gamma=args.gamma,
+          train_ratio=args.train_ratio)
 
 
 if __name__ == '__main__':
@@ -88,10 +121,10 @@ if __name__ == '__main__':
                         choices=models.names())
     parser.add_argument('-a2', '--arch2', type=str, default='densenet121',
                         choices=models.names())
-    parser.add_argument('-i', '--iter-step', type=int, default=5)
+    parser.add_argument('-i', '--iter-step', type=int, default=4)
     parser.add_argument('-g', '--gamma', type=float, default=0.3)
     parser.add_argument('-r', '--train_ratio', type=float, default=0.2)
-    working_dir = os.path.dirname(os.path.abspath(__file__))
+    working_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     parser.add_argument('--data-dir', type=str, metavar='PATH',
                         default=os.path.join(working_dir,'data'))
     parser.add_argument('--logs-dir', type=str, metavar='PATH',

@@ -1,5 +1,3 @@
-
-import os
 from reid.utils.data.sampler import RandomIdentitySampler
 
 class Config(object):
@@ -39,6 +37,8 @@ class Config(object):
     def set_training(self, state):
         self.training = state
         self.shuffle = state
+
+
 
 
 class TripletConfig(Config):
