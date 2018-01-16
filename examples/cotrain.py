@@ -29,16 +29,17 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
         pred_probs = []
         add_ids = []
         for view in range(2):
+            configs[view].set_training(True)
             model = mu.train(train_data, data_dir, configs[view])
             pred_probs.append(mu.predict_prob(
                 model,untrain_data,data_dir,configs[view]))
-            add_ids.append(dp.sel_idx(pred_probs[view], data.train))
+            add_ids.append(dp.sel_idx(pred_probs[view], train_data))
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'epoch': step + 1}, False,
                 fpath=os.path.join(configs[view].logs_dir,
                                    configs[view].model_name,
-                                   'spaco.epoch%d' % (step + 1))
+                                   'cotrain.epoch%d' % (step + 1))
             )
             mu.evaluate(model, data, configs[view])
 
@@ -58,8 +59,8 @@ def main(args):
     config2.width = 224
     config1.batch_size = 32
     config2.batch_size = 32
-    config1.epochs = 1
-    config2.epochs = 1
+    config1.epochs = 50
+    config2.epochs = 50
     config1.logs_dir = args.logs_dir
     config2.logs_dir = args.logs_dir
     #config1.checkpoint = 'logs/resnet50/spaco.epoch1'
