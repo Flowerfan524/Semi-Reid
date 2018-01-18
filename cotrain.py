@@ -54,6 +54,8 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
         add_id = sum(add_ids)
         train_data, untrain_data = dp.update_train_untrain(
             add_id,train_data,untrain_data,pred_y)
+        if len(untrain_data) == 0:
+            break
 
 
 config1 = Config()
