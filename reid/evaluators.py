@@ -9,7 +9,7 @@ from .feature_extraction import extract_cnn_feature
 from .utils.meters import AverageMeter
 
 
-def extract_features(model, data_loader, print_freq=1, metric=None):
+def extract_features(model, data_loader, print_freq=20, metric=None):
     model.eval()
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -114,7 +114,7 @@ class Evaluator(object):
         super(Evaluator, self).__init__()
         self.model = model
 
-    def evaluate(self, data_loader, query, gallery, metric=None):
-        features, _ = extract_features(self.model, data_loader)
+    def evaluate(self, data_loader, query, gallery, metric=None, print_freq=20):
+        features, _ = extract_features(self.model, data_loader, print_freq=print_freq)
         distmat = pairwise_distance(features, query, gallery, metric=metric)
         return evaluate_all(distmat, query=query, gallery=gallery)

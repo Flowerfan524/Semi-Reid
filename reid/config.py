@@ -25,6 +25,7 @@ class Config(object):
 
     #resume dir
     checkpoint = None
+    print_freq = 20
 
     #training flag
     training = True

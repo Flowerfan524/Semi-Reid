@@ -59,7 +59,7 @@ def train_model(model, dataloader, config):
     for epoch in range(config.epochs):
         #adjust_lr(epoch)
         scheduler.step()
-        trainer.train(epoch, dataloader, optimizer)
+        trainer.train(epoch, dataloader, optimizer, print_freq=config.print_freq)
 
 
 def train(train_data, data_dir, config):
@@ -85,6 +85,7 @@ def get_feature(model, data, data_dir, config):
 
 
 def predict_prob(model, data, data_dir, config):
+    config.set_training(False)
     model.eval()
     dataloader = dp.get_dataloader(data, data_dir, config)
     probs = []
@@ -124,4 +125,4 @@ def evaluate(model, dataset, config):
     metric = DistanceMetric(algorithm=config.dist_metric)
     metric.train(model, dataloader)
     evaluator = Evaluator(model)
-    evaluator.evaluate(dataloader, query, gallery, metric)
+    evaluator.evaluate(dataloader, query, gallery, metric, print_freq=config.batch_size)

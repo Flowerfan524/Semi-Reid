@@ -48,7 +48,7 @@ class Market1501_STD(Dataset):
 
         # Randomly split train / val
         trainval_pids = np.asarray(self.split['trainval'])
-        np.random.shuffle(trainval_pids)
+        #np.random.shuffle(trainval_pids)
         num = len(trainval_pids)
         if isinstance(num_val, float):
             num_val = int(round(num * num_val))
