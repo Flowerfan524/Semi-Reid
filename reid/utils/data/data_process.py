@@ -9,13 +9,13 @@ def get_transformer(config):
                          std=[0.229, 0.224, 0.225])
     base_transformer = [T.ToTensor(), normalizer]
     if config.training is False:
-        return [T.Resize((config.height, config.width))] + base_transformer
+        return T.Compose([T.Resize((config.height, config.width))] + base_transformer)
     if config.img_translation is None:
-        return [T.RandomSizedCrop(config.height, config.width),
-                T.RandomHorizontalFlip()] + base_transformer
-    return [T.RandomTranslateWithReflect(config.img_translation),
+        return T.Compose([T.RandomSizedRectCrop(config.height, config.width),
+                T.RandomHorizontalFlip()] + base_transformer)
+    return T.Compose([T.RandomTranslateWithReflect(config.img_translation),
             T.RandomResizedCrop(config.height, config.width),
-            T.RandomHorizontalFlip()] + base_transformer
+            T.RandomHorizontalFlip()] + base_transformer)
 
 
 def get_dataloader(dataset, data_dir, config):
@@ -40,7 +40,7 @@ def get_dataloader(dataset, data_dir, config):
 def add_sample_weights(data, weights=None):
     assert isinstance(data[0], tuple)
     if weights is None:
-        weights = np.ones(len(data))
+        weights = np.ones(len(data), dtyep='float32')
     assert len(data) == len(weights)
     new_data = [(*sample, weight) for sample, weight in zip(data, weights)]
     return new_data

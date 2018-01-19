@@ -17,9 +17,9 @@ def _pluck(identities, indices, relabel=False):
                 x, y, _ = map(int, name.split('_'))
                 assert pid == x and camid == y
                 if relabel:
-                    ret.append((fname, index, camid, 1))
+                    ret.append((fname, index, camid, 1.0))
                 else:
-                    ret.append((fname, pid, camid, 1))
+                    ret.append((fname, pid, camid, 1.0))
     return ret
 
 

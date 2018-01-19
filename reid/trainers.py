@@ -67,7 +67,7 @@ class Trainer(BaseTrainer):
         imgs, _, pids, _, weights = inputs
         inputs = [Variable(imgs)]
         targets = Variable(pids.cuda())
-        weights = Variable(weights.cuda())
+        weights = Variable(weights.float().cuda())
         return inputs, targets, weights
 
     def _forward(self, inputs, targets, weights=None):
