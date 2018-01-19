@@ -40,7 +40,7 @@ def get_dataloader(dataset, data_dir, config):
 def add_sample_weights(data, weights=None):
     assert isinstance(data[0], tuple)
     if weights is None:
-        weights = np.ones(len(data), dtyep='float32')
+        weights = np.ones(len(data), dtype='float32')
     assert len(data) == len(weights)
     new_data = [(*sample, weight) for sample, weight in zip(data, weights)]
     return new_data
@@ -50,7 +50,7 @@ def update_train_untrain(sel_idx, train_data, untrain_data, pred_y,
                          weights=None):
     assert len(train_data[0]) == len(untrain_data[0])
     if weights is None:
-        weights = [1 for i in range(len(untrain_data))]
+        weights = [1.0 for i in range(len(untrain_data))]
     add_data = [(untrain_data[i][0],int(pred_y[i]),
                  untrain_data[i][2],weights[i])
                 for i,flag in enumerate(sel_idx) if flag]

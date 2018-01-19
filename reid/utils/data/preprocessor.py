@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import os.path as osp
+import numpy as np
 
 from PIL import Image
 
@@ -33,4 +34,4 @@ class Preprocessor(object):
         img = Image.open(fpath).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
-        return img, fname, pid, camid, weight
+        return img, fname, pid, camid, np.float32(weight)
