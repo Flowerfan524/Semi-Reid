@@ -92,9 +92,10 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
         if len(indices) == 0:
             continue
         cls_score = score[indices,cls]
+        idx_sort = np.argsort(cls_score)
         idx = min(int(np.ceil(count_per_class[cls] * ratio)),
                   indices.shape[0])
-        lambdas[cls] = cls_score[idx]
+        lambdas[cls] = cls_score[idx_sort[-idx]]
     return lambdas
 
 
