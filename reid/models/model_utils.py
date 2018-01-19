@@ -134,6 +134,7 @@ def combine_evaluate(features, dataset):
 
 
 def evaluate(model, dataset, config):
+    config.set_training(False)
     query, gallery = dataset.query, dataset.gallery
     dataloader = dp.get_dataloader(
         list(set(dataset.query) | set(dataset.gallery)),

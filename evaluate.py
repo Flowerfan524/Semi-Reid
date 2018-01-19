@@ -1,5 +1,7 @@
 from reid.models import model_utils as mu
-from reid.config import Configfrom reid import datasets
+from reid.utils.serialization import load_checkpoint
+from reid.config import Config
+from reid import datasets
 from reid import models
 import numpy as np
 import torch

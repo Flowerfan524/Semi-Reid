@@ -89,6 +89,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
                              for i,l in enumerate(pred_y)]
             weights[view][weights[view] > 1] = 1
             weights[view][weights[view] < 0] = 0
+            add_ratio += 0.5
 
 
             # calculate predict probility on all data
@@ -118,8 +119,8 @@ config1.batch_size = 32
 config2.batch_size = 32
 config1.epochs = 50
 config2.epochs = 50
-#config1.checkpoint = 'logs/resnet50/spaco.epoch0'
-#config2.checkpoint = 'logs/densenet121/spaco.epoch0'
+config1.checkpoint = 'logs/resnet50/soft_spaco.epoch0'
+config2.checkpoint = 'logs/densenet121/soft_spaco.epoch0'
 config1.num_features = 512
 config2.num_features = 512
 dataset = 'market1501std'
