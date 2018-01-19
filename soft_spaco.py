@@ -31,7 +31,6 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
 
     add_ratio = 0.5
     pred_probs = []
-    add_ids = []
     start_step = 0
     for view in range(num_view):
         if configs[view].checkpoint is None:
@@ -55,7 +54,6 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
             #mu.evaluate(model, data, configs[view])
             configs[view].set_training(True)
         pred_probs.append(mu.predict_prob(model, untrain_data, data_dir, configs[view]))
-        add_ids.append(dp.sel_idx(pred_probs[view], train_data, add_ratio))
     pred_y = np.argmax(sum(pred_probs), axis=1)
     
     #### set lambdas and weights for unlabled samples
@@ -64,6 +62,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
     weights = [[(pred_probs[v][i, l] - lambdas[v][l]) / gamma
                 for i,l in enumerate(pred_y)]
                for v in range(num_view)]
+    weights = np.array(weights, dtype='float32')
     for view in range(num_view):
         weights[view][weights[view] > 1] = 1
         weights[view][weights[view] < 0] = 0
@@ -76,7 +75,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
 
             # update w_view
             sel_idx = weight > 0
-            new_train_data,_ = dp.update_train_untrain(add_id,train_data,untrain_data,pred_y, weight)
+            new_train_data,_ = dp.update_train_untrain(sel_idx,train_data,untrain_data,pred_y, weight)
             configs[view].set_training(True)
             model = mu.train(new_train_data, data_dir, configs[view])
 

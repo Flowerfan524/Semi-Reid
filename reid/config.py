@@ -11,6 +11,9 @@ class Config(object):
     height = 256
     width = 128
 
+    # random seed
+    seed = 0
+
 
     #model training parameters
     batch_size = 64

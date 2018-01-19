@@ -22,7 +22,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
     train_ratio: initiate training dataset ratio
     """
     num_view = len(configs)
-    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio)
+    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, config.seed)
     data_dir = data.images_dir
     num_classes = data.num_trainval_ids
     ###########
