@@ -20,10 +20,10 @@ parser.add_argument('-a', '--arch', type=str, default='resnet50',
                     choices=models.names())
 parser.add_argument('-m', '--model', type=str, default='spaco')
 parser.add_argument('-b', '--batch-size', type=int, default=256)
-parser.add_argument('--height', type=int,
+parser.add_argument('--height', type=int, default=256,
                     help="input height, default: 256 for resnet*, "
                          "224 for densenet*")
-parser.add_argument('--width', type=int,
+parser.add_argument('--width', type=int, default=128,
                     help="input width, default: 128 for resnet*, "
                          "224 for densenet*")
 

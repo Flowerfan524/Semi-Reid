@@ -9,6 +9,7 @@ from reid.loss import TripletLoss, SoftCrossEntropyLoss
 from reid.dist_metric import DistanceMetric
 from reid.utils.data import data_process as dp
 from reid.utils import to_torch, to_numpy
+from reid.evaluators import pairwise_distance, evaluate_all
 import numpy as np
 from collections import defaultdict
 
@@ -124,6 +125,12 @@ def get_clusters(model, data_loader, num_classes):
                 for i in range(num_classes)]
     clusters = torch.from_numpy(np.array(clusters, dtype='float32'))
     return torch.autograd.Variable(clusters)
+
+
+def combine_evaluate(features, dataset):
+    distmat = pairwise_distance(features, query=dataset.query,
+                                gallery=dataset.gallery, metric=None)
+    evaluate_all(distmat, dataset.query, dataset.gallery)
 
 
 def evaluate(model, dataset, config):
