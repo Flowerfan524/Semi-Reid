@@ -5,12 +5,32 @@ from reid import models
 from torch.optim import lr_scheduler
 from reid.trainers import Trainer
 from reid.evaluators import extract_features, Evaluator
-from reid.loss import TripletLoss
+from reid.loss import TripletLoss, SoftCrossEntropyLoss
 from reid.dist_metric import DistanceMetric
 from reid.utils.data import data_process as dp
 from reid.utils import to_torch, to_numpy
 import numpy as np
 from collections import defaultdict
+
+
+def get_optim_params(config, params):
+
+    if config.loss_name not in ['softmax', 'triplet', 'weight_softmax']:
+        raise ValueError('wrong loss name')
+    if config.loss_name is 'triplet':
+        criterion = TripletLoss(margin=config.margin).cuda()
+        optimizer = torch.optim.Adam(params, lr=config.lr,
+                                     weight_decay=config.weight_decay)
+        return criterion, optimizer
+    optimizer = torch.optim.SGD(params,
+                                momentum=config.momentum,
+                                weight_decay=config.weight_decay,
+                                nesterov=True)
+    if config.loss_name is 'softmax':
+        criterion = nn.CrossEntropyLoss().cuda()
+    else:
+        criterion = SoftCrossEntropyLoss().cuda()
+    return criterion, optimizer
 
 
 def train_model(model, dataloader, config):
@@ -33,18 +53,7 @@ def train_model(model, dataloader, config):
     else:
         param_groups = model.parameters()
 
-    if config.loss_name is 'softmax':
-        criterion = nn.CrossEntropyLoss().cuda()
-        optimizer = torch.optim.SGD(param_groups,
-                                    momentum=config.momentum,
-                                    weight_decay=config.weight_decay,
-                                    nesterov=True)
-    elif config.loss_name is 'triplet':
-        criterion = TripletLoss(margin=config.margin).cuda()
-        optimizer = torch.optim.Adam(model.parameters(), lr=config.lr,
-                                     weight_decay=config.weight_decay)
-    else:
-        raise ValueError('wrong loss name')
+    criterion, optimizer = get_optim_params(config, param_groups)
 
     trainer = Trainer(model, criterion)
 

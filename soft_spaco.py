@@ -55,7 +55,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
             configs[view].set_training(True)
         pred_probs.append(mu.predict_prob(model, untrain_data, data_dir, configs[view]))
     pred_y = np.argmax(sum(pred_probs), axis=1)
-    
+
     #### set lambdas and weights for unlabled samples
     lambdas = [dp.get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
                for pred_prob in pred_probs]
@@ -89,8 +89,8 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
                              for i,l in enumerate(pred_y)]
             weights[view][weights[view] > 1] = 1
             weights[view][weights[view] < 0] = 0
-            
-            
+
+
             # calculate predict probility on all data
             p_b = mu.predict_prob(model, data.trainval, data_dir, configs[view])
             p_y = np.argmax(p_b, axis=1)
@@ -109,6 +109,8 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
 
 config1 = Config()
 config2 = Config()
+config1.loss_name = 'weight_softmax'
+config2.loss_name = 'weight_softmax'
 config2.model_name = 'densenet121'
 config2.height = 224
 config2.width = 224

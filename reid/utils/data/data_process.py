@@ -4,28 +4,24 @@ from torch.utils.data import DataLoader
 from reid.utils.data.preprocessor import Preprocessor
 
 
+def get_transformer(config):
+    normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+    base_transformer = [T.ToTensor(), normalizer]
+    if config.training is False:
+        return [T.Resize((config.height, config.width))] + base_transformer
+    if config.img_translation is None:
+        return [T.RandomSizedCrop(config.height, config.width),
+                T.RandomHorizontalFlip()] + base_transformer
+    return [T.RandomTranslateWithReflect(config.img_translation),
+            T.RandomResizedCrop(config.height, config.width),
+            T.RandomHorizontalFlip()] + base_transformer
+
+
 def get_dataloader(dataset, data_dir, config):
     if len(dataset[0]) == 3:
         dataset = add_sample_weights(dataset)
-    normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
-    if config.training:
-        transformer = T.Compose([
-             T.RandomSizedRectCrop(config.height, config.width),
-            #T.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0),
-            #T.Resize(144, interpolation=3),
-            #T.RandomCrop((config.height, config.width)),
-            T.RandomHorizontalFlip(),
-            T.ToTensor(),
-            normalizer,
-        ])
-    else:
-        transformer = T.Compose([
-            #T.RectScale(config.height, config.width),
-            T.Resize((config.height, config.width)),
-            T.ToTensor(),
-            normalizer,
-        ])
+    transformer = get_transformer(config)
     sampler = None
     if config.training and config.sampler:
         sampler = config.sampler(dataset, config.num_instances)

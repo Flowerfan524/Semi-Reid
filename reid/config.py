@@ -11,8 +11,8 @@ class Config(object):
     height = 256
     width = 128
 
-    # random seed
-    seed = 0
+    # add noise
+    img_translation = None
 
 
     #model training parameters
