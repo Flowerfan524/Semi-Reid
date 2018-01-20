@@ -47,7 +47,7 @@ for config in [config1, config2]:
     state_dict = {k:v for k,v in checkpoint['state_dict'].items()
                   if k in model.state_dict().keys()}
     model.load_state_dict(state_dict)
-    # mu.evaluate(model, data, config)
+    mu.evaluate(model, data, config)
 
     features.append(mu.get_feature(model, query_gallery, data.images_dir, config))
 

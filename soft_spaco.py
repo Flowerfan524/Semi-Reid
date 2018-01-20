@@ -119,8 +119,8 @@ config1.batch_size = 32
 config2.batch_size = 32
 config1.epochs = 50
 config2.epochs = 50
-config1.checkpoint = 'logs/resnet50/soft_spaco.epoch0'
-config2.checkpoint = 'logs/densenet121/soft_spaco.epoch0'
+config1.checkpoint = 'logs/resnet50/soft_spaco.epoch4'
+config2.checkpoint = 'logs/densenet121/soft_spaco.epoch4'
 config1.num_features = 512
 config2.num_features = 512
 dataset = 'market1501std'
@@ -129,4 +129,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 5)
+spaco([config1,config2], data, 7)

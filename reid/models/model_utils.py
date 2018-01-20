@@ -87,10 +87,11 @@ def train(train_data, data_dir, config):
 
 
 def get_feature(model, data, data_dir, config):
+    config.set_training(False)
     dataloader = dp.get_dataloader(data, data_dir, config)
     features, _ = extract_features(model, dataloader)
-    features = {k:nn.functional.softmax(v, dim=1)
-                for k,v in features.items()}
+    #features = {k:nn.functional.softmax(Variable(v), dim=1).values()
+    #            for k,v in features.items()}
     return features
 
 
@@ -128,13 +129,11 @@ def get_clusters(model, data_loader, num_classes):
 
 
 def combine_evaluate(features, dataset):
-    combine_features = {}
-    for key in features[0].keys():
-        combine_features[key] = torch.sum(torch.cat([feature[key] for feature in features]))
-
     metric = DistanceMetric(algorithm='euclidean')
-    distmat = pairwise_distance(features, query=dataset.query,
-                                gallery=dataset.gallery, metric=metric)
+    distmats = [pairwise_distance(feature, dataset.query, dataset.gallery, metric)\
+            for feature in features]
+    distmats = np.array([dist.numpy() for dist in distmats])
+    distmat = np.sum(distmats, axis=0)
     evaluate_all(distmat, dataset.query, dataset.gallery)
 
 
