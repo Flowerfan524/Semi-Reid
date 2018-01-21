@@ -79,7 +79,7 @@ def sel_idx(score, train_data, ratio=0.5):
 
 def get_lambda_class(score, pred_y, train_data, ratio=0.5):
     y = np.array([label for _,label,_,_ in train_data])
-    lambdas = np.zeros(score.shape[0])
+    lambdas = np.zeros(score.shape[1])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
     count_per_class = [sum(y == c) for c in clss]
@@ -91,7 +91,7 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
         idx_sort = np.argsort(cls_score)
         idx = min(int(np.ceil(count_per_class[cls] * ratio)),
                   indices.shape[0])
-        lambdas[cls] = cls_score[idx_sort[-idx]]
+        lambdas[cls] = cls_score[idx_sort[-idx]] - 0.0001 
     return lambdas
 
 
