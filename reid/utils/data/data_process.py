@@ -10,7 +10,7 @@ def get_transformer(config):
     base_transformer = [T.ToTensor(), normalizer]
     if config.training is False:
         return T.Compose([T.Resize((config.height, config.width))] + base_transformer)
-    if config.img_translation is None:
+    if config.img_translation is False:
         return T.Compose([T.RandomSizedRectCrop(config.height, config.width),
                 T.RandomHorizontalFlip()] + base_transformer)
     return T.Compose([T.RandomTranslateWithReflect(config.img_translation),
@@ -91,7 +91,7 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
         idx_sort = np.argsort(cls_score)
         idx = min(int(np.ceil(count_per_class[cls] * ratio)),
                   indices.shape[0])
-        lambdas[cls] = cls_score[idx_sort[-idx]] - 0.0001 
+        lambdas[cls] = cls_score[idx_sort[-idx]] - 0.0001
     return lambdas
 
 
