@@ -10,7 +10,7 @@ import torch
 import os
 
 
-def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
+def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -38,8 +38,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
             model = mu.train(train_data, data_dir, configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': 0,
-                'train_data': train_data}, False,
+                'epoch': 0}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'spaco.epoch0')
             )
         else:
@@ -60,8 +59,11 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
     for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
-            ov = add_ids[1 - view]
-            pred_probs[view][ov,pred_y[ov]] += gamma
+            for ov in range(num_view):
+                if ov == view:
+                    continue
+                ov_idx = add_ids[ov]
+                pred_probs[view][ov_idx, pred_y[ov_idx]] += gamma
             add_id = dp.sel_idx(pred_probs[view],train_data, add_ratio)
 
             # update w_view
@@ -87,22 +89,22 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
             # mu.evaluate(model,data,configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': step + 1,
-                'train_data': new_train_data}, False,
-                fpath=os.path.join(configs[view].logs_dir,
-                                   configs[view].model_name,
-                                   'spaco.epoch%d' % (step + 1))
+                'epoch': step +1}, False,
+                fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'sptri.epoch%d' % (step + 1))
             )
             # mkdir_if_missing(logs_pth)
             # torch.save(model.state_dict(), logs_pth +
             #           '/spaco.epoch%d' % (step + 1))
 
+
 config1 = Config()
 config2 = Config(model_name='densenet121', height=224, width=224)
+config3 = Config(model_name='resnet50m', img_translation=True)
+
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 4, 1)
+spaco([config1,config2, config3], data, 3, 1)

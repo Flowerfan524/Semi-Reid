@@ -26,13 +26,9 @@ data = datasets.create(dataset,data_dir)
 query_gallery = list(set(data.query) | set(data.gallery))
 
 # model config
-config1 = Config()
-config2 = Config()
-config1.num_features = 512
-config2.num_features = 512
-config2.model_name = 'densenet121'
-config2.width = 224
-config2.height = 224
+config1 = Config(batch_size=128)
+config2 = Config(model_name='densenet121', height=224, width=224,
+                 batch_size=128)
 
 features = []
 for config in [config1, config2]:

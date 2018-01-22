@@ -37,7 +37,8 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             model = mu.train(train_data, data_dir, configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': 0}, False,
+                'epoch': 0,
+                'train_data': train_data}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'soft_spaco.epoch0')
             )
         else:
@@ -79,7 +80,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             model = mu.train(new_train_data, data_dir, configs[view])
 
             # update y
-            pred_probs[view] = mu.predict_prob( model,untrain_data,data_dir, configs[view])
+            pred_probs[view] = mu.predict_prob(model,untrain_data,data_dir, configs[view])
             pred_y = np.argmax(sum(pred_probs),axis=1)
 
             # udpate v_view for next view
@@ -101,28 +102,17 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             # mu.evaluate(model,data,configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': step +1}, False,
+                'epoch': step +1,
+                'train_data': new_train_data}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'soft_spaco.epoch%d' % (step + 1))
             )
             # mkdir_if_missing(logs_pth)
             # torch.save(model.state_dict(), logs_pth +
             #           '/spaco.epoch%d' % (step + 1))
 
-config1 = Config()
-config2 = Config()
-config1.loss_name = 'weight_softmax'
-config2.loss_name = 'weight_softmax'
-config2.model_name = 'densenet121'
-config2.height = 224
-config2.width = 224
-config1.batch_size = 32
-config2.batch_size = 32
-config1.epochs = 50
-config2.epochs = 50
-config1.checkpoint = 'logs/resnet50/soft_spaco.epoch0'
-config2.checkpoint = 'logs/densenet121/soft_spaco.epoch0'
-config1.num_features = 512
-config2.num_features = 512
+config1 = Config(loss_name='weight_softmax', checkpoint='logs/resnet50/soft_spaco.epoch0')
+config2 = Config(model_name='densenet121', loss_name='weight_softmax',
+                 height=224, width=224, checkpoint='logs/densenet121/soft_spaco.epoch0')
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
