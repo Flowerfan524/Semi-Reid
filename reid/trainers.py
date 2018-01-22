@@ -40,7 +40,7 @@ class BaseTrainer(object):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if (i + 1) % print_freq == 0:
+            if (i + 1) % print_freq == 0 and epoch % 5 == 0:
                 print('Epoch: [{}][{}/{}]\t'
                       'Time {:.3f} ({:.3f})\t'
                       'Data {:.3f} ({:.3f})\t'
