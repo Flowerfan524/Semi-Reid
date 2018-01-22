@@ -8,9 +8,14 @@ from reid import models
 import numpy as np
 import torch
 import os
+import argparse
+
+parser=argparse.ArgumentParser(description='spaco arguments')
+parser.add_argument('-s', '--seed', type=int, default=0)
+args=parser.parse_args()
 
 
-def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
+def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -22,7 +27,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
     train_ratio: initiate training dataset ratio
     """
     num_view = len(configs)
-    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, seed=1)
+    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
     num_classes = data.num_trainval_ids
     ###########
@@ -105,4 +110,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 4, 1)
+spaco([config1,config2], data, 4)

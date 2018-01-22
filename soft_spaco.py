@@ -73,13 +73,13 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
-            weight = weights[1 - view] + weights[view]
-            weight[weight > 1] = 1
-            weight[weight < 0] = 0
+            weights[view] = weights[1 - view] + weights[view]
+            weights[view][weights[view] > 1] = 1
+            weights[view][weights[view] < 0] = 0
 
             # update w_view
-            sel_idx = weight > 0
-            new_train_data,_ = dp.update_train_untrain(sel_idx,train_data,untrain_data,pred_y, weight)
+            sel_idx = weights[view] > 0
+            new_train_data,_ = dp.update_train_untrain(sel_idx,train_data,untrain_data,pred_y, weights[view])
             configs[view].set_training(True)
             model = mu.train(new_train_data, data_dir, configs[view])
 
@@ -114,13 +114,15 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             # torch.save(model.state_dict(), logs_pth +
             #           '/spaco.epoch%d' % (step + 1))
 
-config1 = Config(loss_name='weight_softmax')
+config1 = Config(loss_name='weight_softmax',
+        checkpoint='logs/resnet50/soft_spaco.epoch4')
 config2 = Config(model_name='densenet121', loss_name='weight_softmax',
-                 height=224, width=224)
+                 height=224, width=224,
+                 checkpoint='logs/densenet121/soft_spaco.epoch4')
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 4)
+spaco([config1,config2], data, 5)
