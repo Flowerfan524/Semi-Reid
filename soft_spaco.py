@@ -14,6 +14,16 @@ parser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
 args = parser.parse_args()
 
+
+def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma):
+    lamb = dp.get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
+    weight = np.array([(pred_prob[i,l] - lamb[l]) / gamma
+                       for i,l in enumerate(pred_y)], dtype='float32')
+    weight[weight > 1] = 1
+    weight[weight < 1] = 0
+    return weight
+
+
 def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
@@ -60,16 +70,9 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
         pred_probs.append(mu.predict_prob(model, untrain_data, data_dir, configs[view]))
     pred_y = np.argmax(sum(pred_probs), axis=1)
 
-    #### set lambdas and weights for unlabled samples
-    lambdas = [dp.get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
+    #### initiate weights for unlabled samples
+    weights = [get_weights(pred_prob, pred_y, train_data, add_ratio, gamma)
                for pred_prob in pred_probs]
-    weights = [[(pred_probs[v][i, l] - lambdas[v][l]) / gamma
-                for i,l in enumerate(pred_y)]
-               for v in range(num_view)]
-    weights = np.array(weights, dtype='float32')
-    for view in range(num_view):
-        weights[view][weights[view] > 1] = 1
-        weights[view][weights[view] < 0] = 0
     for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
@@ -88,13 +91,12 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             pred_y = np.argmax(sum(pred_probs),axis=1)
 
             # udpate v_view for next view
-            lambdas[view] = dp.get_lambda_class(pred_probs[view], pred_y, train_data, add_ratio)
-            weights[view] = [(pred_probs[view][i,l] - lambdas[view][l]) / gamma
-                             for i,l in enumerate(pred_y)]
-            weights[view] = weights[view] + weights[1-view]
+            add_ratio += 0.5
+            weights[view] = get_weights(pred_probs[view], pred_y, train_data, add_ratio, gamma)
+            weights[view] = weights[view] + weights[1 - view]
             weights[view][weights[view] > 1] = 1
             weights[view][weights[view] < 0] = 0
-            add_ratio += 0.5
+            weights[1 - view] = get_weights(pred_probs[1 - view], pred_y, train_data, add_ratio, gamma)
 
 
             # calculate predict probility on all data
