@@ -10,7 +10,7 @@ import torch
 import os
 
 
-def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
+def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -51,7 +51,6 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
             start_step = checkpoint['epoch']
             add_ratio += start_step * 0.5
             configs[view].set_training(False)
-            #mu.evaluate(model, data, configs[view])
             configs[view].set_training(True)
         pred_probs.append(mu.predict_prob(model, untrain_data, data_dir, configs[view]))
     pred_y = np.argmax(sum(pred_probs), axis=1)
@@ -87,6 +86,7 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
             lambdas[view] = dp.get_lambda_class(pred_probs[view], pred_y, train_data, add_ratio)
             weights[view] = [(pred_probs[view][i,l] - lambdas[view][l]) / gamma
                              for i,l in enumerate(pred_y)]
+            weights[view] = weights[view] + weights[1-view]
             weights[view][weights[view] > 1] = 1
             weights[view][weights[view] < 0] = 0
             add_ratio += 0.5
