@@ -10,6 +10,10 @@ import numpy as np
 import os
 import argparse
 
+parser = argparse.ArgumentParser(description='Cotrain args')
+parser.add_argument('-s', '--seed', type=int, default=0)
+args = parse.parse_args()
+
 
 def cotrain(configs,data,iter_step=1,train_ratio=0.2):
     """
@@ -23,7 +27,7 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
 
     """
     assert iter_step >= 1
-    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio)
+    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
 
     for step in range(iter_step):
