@@ -12,7 +12,7 @@ class Config(object):
     momentum = 0.9
     weight_decay = 5e-4
     sampler = None
-    print_freq = 20
+    print_freq = 200
 
     # training flag
     training = True

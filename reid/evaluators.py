@@ -9,7 +9,7 @@ from .feature_extraction import extract_cnn_feature
 from .utils.meters import AverageMeter
 
 
-def extract_features(model, data_loader, print_freq=20, metric=None):
+def extract_features(model, data_loader, print_freq=200, metric=None):
     model.eval()
     batch_time = AverageMeter()
     data_time = AverageMeter()

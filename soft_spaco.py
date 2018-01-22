@@ -8,7 +8,11 @@ from reid import models
 import numpy as np
 import torch
 import os
+import argparse
 
+parser = argparse.ArgumentParser(description='soft_spaco')
+parser.add_argument('-s', '--seed', type=int, default=0)
+args = parser.parse_args()
 
 def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     """
@@ -22,7 +26,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     train_ratio: initiate training dataset ratio
     """
     num_view = len(configs)
-    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio)
+    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
     num_classes = data.num_trainval_ids
     ###########
@@ -110,13 +114,13 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             # torch.save(model.state_dict(), logs_pth +
             #           '/spaco.epoch%d' % (step + 1))
 
-config1 = Config(loss_name='weight_softmax', checkpoint='logs/resnet50/soft_spaco.epoch0')
+config1 = Config(loss_name='weight_softmax')
 config2 = Config(model_name='densenet121', loss_name='weight_softmax',
-                 height=224, width=224, checkpoint='logs/densenet121/soft_spaco.epoch0')
+                 height=224, width=224)
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 5)
+spaco([config1,config2], data, 4)

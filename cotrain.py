@@ -49,14 +49,11 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
             p_y = np.argmax(p_b, axis=1)
             t_y = [c for (_,c,_,_) in data.trainval]
             print(np.mean(t_y == p_y))
-#             evaluation current model and save it
-            # mu.evaluate(model,data,configs[view])
-
-            mu.evaluate(model, data, configs[view])
 
         if len(untrain_data) == 0:
             break
 
+        # update training data
         pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)
         train_data, untrain_data = dp.update_train_untrain(
