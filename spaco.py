@@ -75,11 +75,12 @@ def spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
             model = mu.train(new_train_data, data_dir, configs[view])
 
             # update y
-            pred_probs[view] = mu.predict_prob( model,untrain_data,data_dir, configs[view])
+            pred_probs[view] = mu.predict_prob(model,untrain_data,data_dir, configs[view])
             pred_y = np.argmax(sum(pred_probs),axis=1)
 
             # udpate v_view for next view
             add_ratio += 0.5
+            pred_probs[view][ov,pred_y[ov]] += gamma
             add_ids[view] = dp.sel_idx(pred_probs[view], train_data,add_ratio)
 
 

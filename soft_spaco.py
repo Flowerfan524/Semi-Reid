@@ -15,16 +15,17 @@ parser.add_argument('-s', '--seed', type=int, default=0)
 args = parser.parse_args()
 
 
-def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma):
+def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma, rect=False):
     lamb = dp.get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
     weight = np.array([(pred_prob[i,l] - lamb[l]) / gamma
                        for i,l in enumerate(pred_y)], dtype='float32')
+    if rect is True:
+        weight[weight < 0] = 0
     weight[weight > 1] = 1
-    weight[weight < 1] = 0
     return weight
 
 
-def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
+def soft_spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -73,16 +74,17 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
     #### initiate weights for unlabled samples
     weights = [get_weights(pred_prob, pred_y, train_data, add_ratio, gamma)
                for pred_prob in pred_probs]
+    sel_ids = [weight > 0 for weight in weights]
     for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
-            weights[view] = weights[1 - view] + weights[view]
-            weights[view][weights[view] > 1] = 1
-            weights[view][weights[view] < 0] = 0
+            ov = sel_ids[1 - view]
+            pred_probs[view][ov, pred_y[ov]] += gamma * weights[1 - view][ov]
+            weights[view] = get_weights(pred_probs[view], pred_y, train_data, add_ratio, gamma)
 
             # update w_view
-            sel_idx = weights[view] > 0
-            new_train_data,_ = dp.update_train_untrain(sel_idx,train_data,untrain_data,pred_y, weights[view])
+            sel_ids[view] = weights[view] > 0
+            new_train_data,_ = dp.update_train_untrain(sel_ids[view],train_data,untrain_data,pred_y, weights[view])
             configs[view].set_training(True)
             model = mu.train(new_train_data, data_dir, configs[view])
 
@@ -92,12 +94,9 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
 
             # udpate v_view for next view
             add_ratio += 0.5
+            pred_probs[view][ov, pred_y[ov]] += gamma * weights[1 - view][ov]
             weights[view] = get_weights(pred_probs[view], pred_y, train_data, add_ratio, gamma)
-            weights[view] = weights[view] + weights[1 - view]
-            weights[view][weights[view] > 1] = 1
-            weights[view][weights[view] < 0] = 0
-            weights[1 - view] = get_weights(pred_probs[1 - view], pred_y, train_data, add_ratio, gamma)
-
+            sel_ids[view] = weights[view] > 0
 
             # calculate predict probility on all data
             p_b = mu.predict_prob(model, data.trainval, data_dir, configs[view])
@@ -127,4 +126,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2], data, 5)
+soft_spaco([config1,config2], data, 5)
