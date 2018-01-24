@@ -24,7 +24,7 @@ parser.add_argument('--checkpoint', default='', type=str)
 args = parser.parse_args()
 
 
-config = Config(model_name=args.model_name,img_translation=None,
+config = Config(model_name=args.arch,img_translation=None,
                 height=args.height, width=args.width)
 # config1.height = 224
 # config1.width = 224
