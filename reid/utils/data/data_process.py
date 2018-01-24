@@ -14,7 +14,7 @@ def get_transformer(config):
         return T.Compose([T.RandomSizedRectCrop(config.height, config.width),
                 T.RandomHorizontalFlip()] + base_transformer)
     return T.Compose([T.RandomTranslateWithReflect(config.img_translation),
-            T.RandomResizedCrop(config.height, config.width),
+            T.RandomSizedRectCrop(config.height, config.width),
             T.RandomHorizontalFlip()] + base_transformer)
 
 
