@@ -115,11 +115,9 @@ def soft_spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
             # torch.save(model.state_dict(), logs_pth +
             #           '/spaco.epoch%d' % (step + 1))
 
-config1 = Config(loss_name='weight_softmax',
-        checkpoint='logs/resnet50/soft_spaco.epoch4')
+config1 = Config(loss_name='weight_softmax')
 config2 = Config(model_name='densenet121', loss_name='weight_softmax',
-                 height=224, width=224,
-                 checkpoint='logs/densenet121/soft_spaco.epoch4')
+                 height=224, width=224)
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
