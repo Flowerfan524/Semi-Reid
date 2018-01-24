@@ -33,7 +33,7 @@ config2 = Config(model_name='densenet121', height=224, width=224,
 features = []
 for config in [config1, config2]:
     model = models.create(config.model_name, num_features=config.num_features,
-                          dropout=config1.dropout, num_classes=config.num_classes)
+                          dropout=config.dropout, num_classes=config.num_classes)
     model = torch.nn.DataParallel(model).cuda()
 
     save_pth = os.path.join(config.logs_dir, config.model_name, '%s'%(args.checkpoint))

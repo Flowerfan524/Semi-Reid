@@ -16,7 +16,7 @@ parser.add_argument('-s', '--seed', type=int, default=0)
 args = parser.parse_args()
 
 
-def spmul(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
+def spmul(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2,seed=0):
     """
     self-paced co-training model implementation based on Pytroch
     params:

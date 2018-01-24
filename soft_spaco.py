@@ -25,7 +25,7 @@ def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma, rect=False):
     return weight
 
 
-def soft_spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2):
+def soft_spaco(configs,data,iter_step=1,gamma=0.3,train_ratio=0.2):
     """
     self-paced co-training model implementation based on Pytroch
     params:
