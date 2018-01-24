@@ -8,6 +8,12 @@ from reid import models
 import numpy as np
 import torch
 import os
+import argparse
+
+
+parser = argparse.ArgumentParser(description='soft_spaco')
+parser.add_argument('-s', '--seed', type=int, default=0)
+args = parser.parse_args()
 
 
 def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
@@ -22,7 +28,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
     train_ratio: initiate training dataset ratio
     """
     num_view = len(configs)
-    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, seed=1)
+    train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
     num_classes = data.num_trainval_ids
     ###########
@@ -38,7 +44,8 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
             model = mu.train(train_data, data_dir, configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': 0}, False,
+                'epoch': 0,
+                'train_data': train_data}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'spaco.epoch0')
             )
         else:
@@ -63,7 +70,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
                 if ov == view:
                     continue
                 ov_idx = add_ids[ov]
-                pred_probs[view][ov_idx, pred_y[ov_idx]] += gamma
+                pred_probs[view][ov_idx, pred_y[ov_idx]] += gamma/(num_view - 1)
             add_id = dp.sel_idx(pred_probs[view],train_data, add_ratio)
 
             # update w_view
@@ -77,6 +84,11 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
 
             # udpate v_view for next view
             add_ratio += 0.5
+            for ov in range(num_view):
+                if ov == view:
+                    continue
+                ov_idx = add_ids[ov]
+                pred_probs[view][ov_idx, pred_y[ov_idx]] += gamma/(num_view - 1)
             add_ids[view] = dp.sel_idx(pred_probs[view], train_data,add_ratio)
 
 
@@ -89,7 +101,8 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
             # mu.evaluate(model,data,configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
-                'epoch': step +1}, False,
+                'epoch': step + 1,
+                'train_data': new_train_data}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'sptri.epoch%d' % (step + 1))
             )
             # mkdir_if_missing(logs_pth)
