@@ -24,7 +24,7 @@ class Config(object):
     def __init__(self, model_name='resnet50', loss_name='softmax',
                  num_classes=751,height=256, width=128, batch_size=32,
                  epochs=50,num_features=512, checkpoint=None,
-                 img_translation=False):
+                 img_translation=None):
         self.model_name = model_name
         self.loss_name = loss_name
         self.num_classes = num_classes

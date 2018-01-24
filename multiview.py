@@ -16,7 +16,7 @@ parser.add_argument('-s', '--seed', type=int, default=0)
 args = parser.parse_args()
 
 
-def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
+def spmul(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -30,7 +30,6 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
     num_view = len(configs)
     train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
-    num_classes = data.num_trainval_ids
     ###########
     # initiate classifier to get preidctions
     ###########
@@ -46,7 +45,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
                 'state_dict': model.state_dict(),
                 'epoch': 0,
                 'train_data': train_data}, False,
-                fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'spaco.epoch0')
+                fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'spmul.epoch0')
             )
         else:
             model = models.create(configs[view].model_name,
@@ -103,7 +102,7 @@ def spaco(configs,data,iter_step=1,gamma=0.1,train_ratio=0.2,seed=0):
                 'state_dict': model.state_dict(),
                 'epoch': step + 1,
                 'train_data': new_train_data}, False,
-                fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'sptri.epoch%d' % (step + 1))
+                fpath=os.path.join(configs[view].logs_dir, configs[view].model_name, 'spmul.epoch%d' % (step + 1))
             )
             # mkdir_if_missing(logs_pth)
             # torch.save(model.state_dict(), logs_pth +
@@ -120,4 +119,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path,'data',dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1,config2, config3], data, 3, 1)
+spmul([config1,config2, config3], data, 3)

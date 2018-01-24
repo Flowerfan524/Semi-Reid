@@ -10,7 +10,7 @@ def get_transformer(config):
     base_transformer = [T.ToTensor(), normalizer]
     if config.training is False:
         return T.Compose([T.Resize((config.height, config.width))] + base_transformer)
-    if config.img_translation is False:
+    if config.img_translation is None:
         return T.Compose([T.RandomSizedRectCrop(config.height, config.width),
                 T.RandomHorizontalFlip()] + base_transformer)
     return T.Compose([T.RandomTranslateWithReflect(config.img_translation),

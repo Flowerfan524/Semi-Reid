@@ -4,6 +4,7 @@ from torchvision.transforms import *
 from PIL import Image
 import random
 import math
+import numpy as np
 
 
 class RectScale(object):
@@ -94,5 +95,3 @@ class RandomTranslateWithReflect:
                                     ypad + ysize - ytranslation))
 
         return new_image
-
-    
