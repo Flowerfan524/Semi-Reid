@@ -41,7 +41,7 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
                 'epoch': step + 1,
                 'train_data': train_data}, False,
                 fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name, 'cotrain.epoch%d' % step)
+                    configs[view].logs_dir, configs[view].model_name, 'self_train.epoch%d' % step)
             )
 
             pred_prob = mu.predict_prob(
