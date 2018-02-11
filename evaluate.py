@@ -14,6 +14,8 @@ parser.add_argument('-d', '--dataset', type=str, default='market1501std',
                     choices=datasets.names())
 parser.add_argument('-c', '--checkpoint', type=str, default='spaco.epoch4')
 parser.add_argument('-b', '--batch-size', type=int, default=256)
+parser.add_argument('--combine', type=str, default='123')
+parser.add_argument('--single-eval', type=bool, default=False)
 args = parser.parse_args()
 
 
@@ -29,9 +31,18 @@ query_gallery = list(set(data.query) | set(data.gallery))
 config1 = Config(batch_size=128)
 config2 = Config(model_name='densenet121', height=224, width=224,
                  batch_size=128)
+config3 = Config(model_name='resnet101', batch_size=128)
+if args.combine == '123':
+    configs = [config1, config2, config3]
+elif args.combine == '12':
+    configs = [config1, config2]
+elif args.combine == '23':
+    configs = [config3, config2]
+else:
+    raise ValueError('wrong combination')
 
 features = []
-for config in [config1, config2]:
+for config in configs:
     model = models.create(config.model_name, num_features=config.num_features,
                           dropout=config.dropout, num_classes=config.num_classes)
     model = torch.nn.DataParallel(model).cuda()
@@ -43,7 +54,8 @@ for config in [config1, config2]:
     state_dict = {k:v for k,v in checkpoint['state_dict'].items()
                   if k in model.state_dict().keys()}
     model.load_state_dict(state_dict)
-    mu.evaluate(model, data, config)
+    if args.single_eval:
+        mu.evaluate(model, data, config)
 
     features.append(mu.get_feature(model, query_gallery, data.images_dir, config))
 
