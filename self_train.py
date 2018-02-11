@@ -31,8 +31,9 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
     data_dir = data.images_dir
 
     for view in range(2):
-        add_ratio = 0.5
+        add_ratio = 1
         new_train_data = train_data
+        new_untrain_data = untrain_data
         for step in range(iter_step):
             configs[view].set_training(True)
             model = mu.train(new_train_data, data_dir, configs[view])
@@ -43,14 +44,20 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
                 fpath=os.path.join(
                     configs[view].logs_dir, configs[view].model_name, 'self_train.epoch%d' % step)
             )
+            # calculate predict probility on all data
+            p_b = mu.predict_prob(model, data.trainval, data_dir, configs[view])
+            p_y = np.argmax(p_b, axis=1)
+            t_y = [c for (_,c,_,_) in data.trainval]
+            print(np.mean(t_y == p_y))
 
+            if len(new_untrain_data) == 0:
+                break
             pred_prob = mu.predict_prob(
-                model, untrain_data, data_dir, configs[view])
+                model, new_untrain_data, data_dir, configs[view])
             pred_y = np.argmax(pred_prob, axis=1)
-            add_ratio += 0.5
-            add_id = dp.sel_idx(pred_prob, train_data, add_ratio)
-            new_train_data, _ = dp.update_train_untrain(
-                add_id, train_data, untrain_data, pred_y)
+            add_id = dp.sel_idx(pred_prob, new_train_data, add_ratio)
+            new_train_data, new_untrain_data = dp.update_train_untrain(
+                add_id, new_train_data, new_untrain_data, pred_y)
 
 
 config1 = Config()

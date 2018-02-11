@@ -5,14 +5,13 @@ from reid.utils.serialization import save_checkpoint
 from reid import datasets
 from reid import models
 from reid.config import Config
-import torch
 import numpy as np
 import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Cotrain args')
 parser.add_argument('-s', '--seed', type=int, default=0)
-args = parse.parse_args()
+args = parser.parse_args()
 
 
 def cotrain(configs,data,iter_step=1,train_ratio=0.2):
@@ -30,16 +29,17 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
     train_data,untrain_data = dp.split_dataset(data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
 
+    new_train_data = train_data
     for step in range(iter_step):
         pred_probs = []
         add_ids = []
         for view in range(2):
             configs[view].set_training(True)
-            model = mu.train(train_data, data_dir, configs[view])
+            model = mu.train(new_train_data, data_dir, configs[view])
             save_checkpoint({
                 'state_dict': model.state_dict(),
                 'epoch': step + 1,
-                'train_data': train_data}, False,
+                'train_data': new_train_data}, False,
                 fpath = os.path.join(configs[view].logs_dir, configs[view].model_name, 'cotrain.epoch%d' % step)
             )
             if len(untrain_data) == 0:
@@ -60,8 +60,8 @@ def cotrain(configs,data,iter_step=1,train_ratio=0.2):
         # update training data
         pred_y = np.argmax(sum(pred_probs), axis=1)
         add_id = sum(add_ids)
-        train_data, untrain_data = dp.update_train_untrain(
-            add_id,train_data,untrain_data,pred_y)
+        new_train_data, untrain_data = dp.update_train_untrain(
+            add_id,new_train_data,untrain_data,pred_y)
 
 
 
