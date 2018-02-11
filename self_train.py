@@ -30,8 +30,8 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
         data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
 
-    for view in range(2):
-        add_ratio = 1
+    for view in range(len(configs)):
+        add_ratio = 0.5
         new_train_data = train_data
         new_untrain_data = untrain_data
         for step in range(iter_step):
@@ -62,6 +62,7 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
 
 config1 = Config()
 config2 = Config(model_name='densenet121', height=224, width=224)
+config3 = Config(model_name='renset101', img_translation=2)
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
