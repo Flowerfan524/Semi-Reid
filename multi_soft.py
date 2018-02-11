@@ -54,7 +54,7 @@ def multi_soft(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2):
                 'epoch': 0,
                 'train_data': train_data}, False,
                 fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name, 'soft_spaco.epoch0')
+                    configs[view].logs_dir, configs[view].model_name, 'multi_soft.epoch0')
             )
         else:
             model = models.create(configs[view].model_name,
