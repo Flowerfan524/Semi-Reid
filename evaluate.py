@@ -15,7 +15,7 @@ parser.add_argument('-d', '--dataset', type=str, default='market1501std',
 parser.add_argument('-c', '--checkpoint', type=str, default='spaco.epoch4')
 parser.add_argument('-b', '--batch-size', type=int, default=256)
 parser.add_argument('--combine', type=str, default='123')
-parser.add_argument('--single-eval', type=bool, default=False)
+parser.add_argument('--single-eval', action='store_true', help='evaluate single view')
 args = parser.parse_args()
 
 
