@@ -70,4 +70,4 @@ data_dir = os.path.join(cur_path, 'data', dataset)
 data = datasets.create(dataset, data_dir)
 
 
-self_train([config1, config2], data, 5)
+self_train([config1, config2, config3], data, 5)
