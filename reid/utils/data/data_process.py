@@ -6,16 +6,16 @@ from reid.utils.data.preprocessor import Preprocessor
 
 def get_transformer(config):
     normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
+                             std=[0.229, 0.224, 0.225])
     base_transformer = [T.ToTensor(), normalizer]
     if config.training is False:
         return T.Compose([T.Resize((config.height, config.width))] + base_transformer)
     if config.img_translation is None:
         return T.Compose([T.RandomSizedRectCrop(config.height, config.width),
-                T.RandomHorizontalFlip()] + base_transformer)
+                          T.RandomHorizontalFlip()] + base_transformer)
     return T.Compose([T.RandomTranslateWithReflect(config.img_translation),
-            T.RandomSizedRectCrop(config.height, config.width),
-            T.RandomHorizontalFlip()] + base_transformer)
+                      T.RandomSizedRectCrop(config.height, config.width),
+                      T.RandomHorizontalFlip()] + base_transformer)
 
 
 def get_dataloader(dataset, data_dir, config):
@@ -51,17 +51,17 @@ def update_train_untrain(sel_idx, train_data, untrain_data, pred_y,
     assert len(train_data[0]) == len(untrain_data[0])
     if weights is None:
         weights = [1.0 for i in range(len(untrain_data))]
-    add_data = [(untrain_data[i][0],int(pred_y[i]),
-                 untrain_data[i][2],weights[i])
-                for i,flag in enumerate(sel_idx) if flag]
+    add_data = [(untrain_data[i][0], int(pred_y[i]),
+                 untrain_data[i][2], weights[i])
+                for i, flag in enumerate(sel_idx) if flag]
     data1 = [untrain_data[i]
-             for i,flag in enumerate(sel_idx) if not flag]
+             for i, flag in enumerate(sel_idx) if not flag]
     data2 = train_data + add_data
     return data2, data1
 
 
 def sel_idx(score, train_data, ratio=0.5):
-    y = np.array([label for _,label,_,_ in train_data])
+    y = np.array([label for _, label, _, _ in train_data])
     add_indices = np.zeros(score.shape[0])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
@@ -69,7 +69,7 @@ def sel_idx(score, train_data, ratio=0.5):
     pred_y = np.argmax(score, axis=1)
     for cls in range(len(clss)):
         indices = np.where(pred_y == cls)[0]
-        cls_score = score[indices,cls]
+        cls_score = score[indices, cls]
         idx_sort = np.argsort(cls_score)
         add_num = min(int(np.ceil(count_per_class[cls] * ratio)),
                       indices.shape[0])
@@ -78,7 +78,7 @@ def sel_idx(score, train_data, ratio=0.5):
 
 
 def get_lambda_class(score, pred_y, train_data, ratio=0.5):
-    y = np.array([label for _,label,_,_ in train_data])
+    y = np.array([label for _, label, _, _ in train_data])
     lambdas = np.zeros(score.shape[1])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
@@ -87,12 +87,25 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
         indices = np.where(pred_y == cls)[0]
         if len(indices) == 0:
             continue
-        cls_score = score[indices,cls]
+        cls_score = score[indices, cls]
         idx_sort = np.argsort(cls_score)
         idx = min(int(np.ceil(count_per_class[cls] * ratio)),
                   indices.shape[0])
         lambdas[cls] = cls_score[idx_sort[-idx]] - 0.1
     return lambdas
+
+
+def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma, regularizer, rect=False):
+    lamb = get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
+    weight = np.array([(pred_prob[i, l] - lamb[l]) / gamma
+                       for i, l in enumerate(pred_y)], dtype='float32')
+    if rect is True:
+        weight[weight < 0] = 0
+    if regularizer is 'hard':
+        weight[weight > 0] = 1
+        return weight
+    weight[weight > 1] = 1
+    return weight
 
 
 def split_dataset(dataset, train_ratio=0.2, seed=0):
@@ -115,8 +128,4 @@ def split_dataset(dataset, train_ratio=0.2, seed=0):
     cls1 = np.unique([d[1] for d in train_set])
     cls2 = np.unique([d[1] for d in untrain_set])
     assert len(cls1) == len(cls2) and len(cls1) == 751
-    return train_set,untrain_set
-
-
-def update_weights(pred_probs, gamma, weights=None):
-    pred_y = np.max(pred_probs, axis=1)
+    return train_set, untrain_set
