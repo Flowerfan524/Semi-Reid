@@ -11,6 +11,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
+parser.add_argument('-r', '--regularizer', type=str, default='hard')
 args = parser.parse_args()
 
 
@@ -136,4 +137,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path, 'data', dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1, config2, config3], data, 4, regularizer='hard')
+spaco([config1, config2, config3], data, 4, regularizer=args.regularizer)
