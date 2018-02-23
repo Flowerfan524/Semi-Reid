@@ -54,7 +54,8 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
                 'epoch': 0,
                 'train_data': train_data}, False,
                 fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name, 'multi_soft.epoch0')
+                    configs[view].logs_dir, configs[view].model_name,
+                    'spaco_%s.epoch0' % regularizer)
             )
         else:
             model = models.create(configs[view].model_name,
@@ -122,8 +123,10 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
                 'epoch': step + 1,
                 'train_data': new_train_data}, False,
                 fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name, 'multi_soft.epoch%d' % (step + 1))
+                    configs[view].logs_dir, configs[view].model_name,
+                    'spaco%s.epoch%d' % (regularizer, step + 1))
             )
+
 
 config1 = Config(model_name='resnet50', loss_name='weight_softmax')
 config2 = Config(model_name='densenet121', loss_name='weight_softmax',
