@@ -73,7 +73,7 @@ def train_model(model, dataloader, config):
 
 
 def train(train_data, data_dir, config):
-    assert config.training
+    config.set_training(True)
     model = models.create(config.model_name,
                           num_features=config.num_features,
                           dropout=config.dropout,
@@ -82,7 +82,6 @@ def train(train_data, data_dir, config):
     model = nn.DataParallel(model).cuda()
     dataloader = dp.get_dataloader(train_data, data_dir, config)
     train_model(model, dataloader, config)
-    config.set_training(False)
     return model
 
 

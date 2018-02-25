@@ -1,3 +1,6 @@
+import os
+import torch
+import argparse
 from reid.models import model_utils as mu
 from reid.utils.data import data_process as dp
 from reid.config import Config
@@ -5,13 +8,11 @@ from reid.utils.serialization import load_checkpoint, save_checkpoint
 from reid import datasets
 from reid import models
 import numpy as np
-import torch
-import os
-import argparse
 
 parser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
 parser.add_argument('-r', '--regularizer', type=str, default='hard')
+parser.add_argument('-d', '--dataset', type=str, default='market1501std')
 args = parser.parse_args()
 
 
@@ -22,6 +23,19 @@ def test_acc(model, data, data_dir, config):
     p_y = np.argmax(p_b, axis=1)
     t_y = [c for (_, c, _, _) in data]
     print(np.mean(t_y == p_y))
+
+
+def update_ids_weights(view, probs, sel_ids, weights, pred_y,
+                       train_data, add_ratio, gamma, regularizer):
+    num_view = len(probs)
+    for ov in range(num_view):
+        if ov == view:
+            continue
+        ov = sel_ids[1 - view]
+        probs[view][ov, pred_y[ov]] += gamma * weights[view][ov] / (num_view - 1)
+        sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
+                                            add_ratio, gamma, regularizer)
+        return sel_id, weight
 
 
 def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='hard'):
@@ -45,6 +59,8 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
 
     add_ratio = 0.5
     pred_probs = []
+    sel_ids = []
+    weights = []
     start_step = 0
     for view in range(num_view):
         if configs[view].checkpoint is None:
@@ -67,30 +83,25 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
             model.load_state_dict(checkpoint['state_dict'])
             start_step = checkpoint['epoch']
             add_ratio += start_step * 0.5
-            configs[view].set_training(False)
-            configs[view].set_training(True)
-        pred_probs.append(mu.predict_prob(
-            model, untrain_data, data_dir, configs[view]))
+        pred_probs.append(mu.predict_prob(model, untrain_data,
+                                          data_dir, configs[view]))
     pred_y = np.argmax(sum(pred_probs), axis=1)
 
-    # initiate weights for unlabled samples
-    weights = [dp.get_weights(pred_prob, pred_y, train_data,
-                              add_ratio, gamma, regularizer)
-               for pred_prob in pred_probs]
-    sel_ids = [weight > 0 for weight in weights]
+    # initiate weights for unlabled examples
+    for view in range(num_view):
+        sel_id, weight = dp.get_ids_weights(pred_probs[view], pred_y, train_data,
+                                            add_ratio, gamma, regularizer)
+        sel_ids.append(sel_id)
+        weights.append(weight)
+
+    # start iterative training
     for step in range(start_step, iter_step):
         for view in range(num_view):
             # update v_view
-            for ov in range(num_view):
-                if ov == view:
-                    continue
-                ov = sel_ids[1 - view]
-                pred_probs[view][ov, pred_y[ov]] += gamma * weights[view][ov]
-            weights[view] = dp.get_weights(
-                pred_probs[view], pred_y, train_data, add_ratio, gamma, regularizer)
-
+            sel_ids[view], weights[view] = update_ids_weights(view, pred_probs, sel_ids,
+                                                              weights, pred_y, train_data,
+                                                              add_ratio, gamma, regularizer)
             # update w_view
-            sel_ids[view] = weights[view] > 0
             new_train_data, _ = dp.update_train_untrain(
                 sel_ids[view], train_data, untrain_data, pred_y, weights[view])
             configs[view].set_training(True)
@@ -103,15 +114,9 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
 
             # udpate v_view for next view
             add_ratio += 0.5
-            for ov in range(num_view):
-                if ov == view:
-                    continue
-                ov = sel_ids[1 - view]
-                pred_probs[view][ov, pred_y[ov]] += gamma * weights[view][ov]
-            pred_probs[view][ov, pred_y[ov]] += gamma * weights[1 - view][ov]
-            weights[view] = dp.get_weights(
-                pred_probs[view], pred_y, train_data, add_ratio, gamma, regularizer)
-            sel_ids[view] = weights[view] > 0
+            sel_ids[view], weights[view] = update_ids_weights(view, pred_probs, sel_ids,
+                                                              weights, pred_y, train_data,
+                                                              add_ratio, gamma, regularizer)
 
             # calculate predict probility on all data
             test_acc(model, data.trainval, data_dir, configs[view])
@@ -134,10 +139,10 @@ config2 = Config(model_name='densenet121', loss_name='weight_softmax',
 config3 = Config(model_name='resnet101',
                  loss_name='weight_softmax', img_translation=2)
 
-dataset = 'market1501std'
+dataset = args.dataset
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path, 'data', dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1, config2, config3], data, 4, regularizer=args.regularizer)
+spaco([config1, config2, config3], data, 3, regularizer=args.regularizer)

@@ -80,6 +80,7 @@ def sel_idx(score, train_data, ratio=0.5):
 def get_lambda_class(score, pred_y, train_data, ratio=0.5):
     y = np.array([label for _, label, _, _ in train_data])
     lambdas = np.zeros(score.shape[1])
+    add_ids = np.zeros(score.shape[0])
     clss = np.unique(y)
     assert score.shape[1] == len(clss)
     count_per_class = [sum(y == c) for c in clss]
@@ -89,18 +90,32 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
             continue
         cls_score = score[indices, cls]
         idx_sort = np.argsort(cls_score)
-        idx = min(int(np.ceil(count_per_class[cls] * ratio)),
-                  indices.shape[0])
-        lambdas[cls] = cls_score[idx_sort[-idx]] - 0.1
-    return lambdas
+        add_num = min(int(np.ceil(count_per_class[cls] * ratio)),
+                      indices.shape[0])
+        add_ids[indices[idx_sort[-add_num:]]] = 1
+        lambdas[cls] = cls_score[idx_sort[-add_num]] - 0.1
+    return add_ids.astype('bool'), lambdas
 
 
-def get_weights(pred_prob, pred_y, train_data, add_ratio, gamma, regularizer, rect=False):
+def get_ids_weights(pred_prob, pred_y, train_data,
+                    add_ratio, gamma, regularizer):
+    add_ids, lambdas = get_lambda_class(
+        pred_prob, pred_y, train_data, add_ratio)
+    weight = np.array([(pred_prob[i, l] - lambdas[l]) / gamma
+                       for i, l in enumerate(pred_y)], dtype='float32')
+    weight[~add_ids] = 0
+    if regularizer == 'hard':
+        weight[add_ids] = 1
+        return add_ids, weight
+    weight[weight > 1] = 1
+    return add_ids, weight
+
+
+def get_weights(pred_prob, pred_y, train_data,
+                add_ratio, gamma, regularizer):
     lamb = get_lambda_class(pred_prob, pred_y, train_data, add_ratio)
     weight = np.array([(pred_prob[i, l] - lamb[l]) / gamma
                        for i, l in enumerate(pred_y)], dtype='float32')
-    if rect is True:
-        weight[weight < 0] = 0
     if regularizer is 'hard':
         weight[weight > 0] = 1
         return weight
