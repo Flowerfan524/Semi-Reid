@@ -15,6 +15,9 @@ parser.add_argument('-r', '--regularizer', type=str, default='hard')
 parser.add_argument('-d', '--dataset', type=str, default='market1501std')
 args = parser.parse_args()
 
+torch.manual_seed(args.seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(args.seed)
 
 def test_acc(model, data, data_dir, config):
 
