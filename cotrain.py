@@ -5,6 +5,7 @@ from reid.utils.serialization import save_checkpoint
 from reid import datasets
 from reid import models
 from reid.config import Config
+import torch
 import numpy as np
 import os
 import argparse
@@ -12,6 +13,10 @@ import argparse
 parser = argparse.ArgumentParser(description='Cotrain args')
 parser.add_argument('-s', '--seed', type=int, default=0)
 args = parser.parse_args()
+
+torch.manual_seed(args.seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(args.seed)
 
 
 def cotrain(configs,data,iter_step=1,train_ratio=0.2):
