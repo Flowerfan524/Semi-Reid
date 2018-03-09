@@ -101,7 +101,7 @@ def get_ids_weights(pred_prob, pred_y, train_data,
                     add_ratio, gamma, regularizer):
     add_ids, lambdas = get_lambda_class(
         pred_prob, pred_y, train_data, add_ratio)
-    weight = np.array([(pred_prob[i, l] - lambdas[l]) / gamma
+    weight = np.array([(pred_prob[i, l] - lambdas[l]) / (gamma + 1e-5)
                        for i, l in enumerate(pred_y)], dtype='float32')
     weight[~add_ids] = 0
     if regularizer == 'hard':
@@ -109,6 +109,7 @@ def get_ids_weights(pred_prob, pred_y, train_data,
         return add_ids, weight
     weight[weight > 1] = 1
     return add_ids, weight
+
 
 
 def get_weights(pred_prob, pred_y, train_data,

@@ -13,6 +13,8 @@ parser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
 parser.add_argument('-r', '--regularizer', type=str, default='hard')
 parser.add_argument('-d', '--dataset', type=str, default='market1501std')
+parser.add_argument('--gamma', type=float, default=0.3)
+parser.add_argument('--iter_steps', type=int, default=4)
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -31,17 +33,17 @@ def test_acc(model, data, data_dir, config):
 def update_ids_weights(view, probs, sel_ids, weights, pred_y,
                        train_data, add_ratio, gamma, regularizer):
     num_view = len(probs)
-    for ov in range(num_view):
-        if ov == view:
+    for v in range(num_view):
+        if v == view:
             continue
-        ov = sel_ids[1 - view]
-        probs[view][ov, pred_y[ov]] += gamma * weights[view][ov] / (num_view - 1)
-        sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
-                                            add_ratio, gamma, regularizer)
-        return sel_id, weight
+        ov = sel_ids[v]
+        probs[view][ov, pred_y[ov]] += gamma * weights[v][ov] / (num_view - 1)
+    sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
+                                        add_ratio, gamma, regularizer)
+    return sel_id, weight
 
 
-def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='hard'):
+def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='hard'):
     """
     self-paced co-training model implementation based on Pytroch
     params:
@@ -98,7 +100,7 @@ def spaco(configs, data, iter_step=1, gamma=0.3, train_ratio=0.2, regularizer='h
         weights.append(weight)
 
     # start iterative training
-    for step in range(start_step, iter_step):
+    for step in range(start_step, iter_steps):
         for view in range(num_view):
             # update v_view
             sel_ids[view], weights[view] = update_ids_weights(view, pred_probs, sel_ids,
@@ -148,4 +150,4 @@ logs_dir = os.path.join(cur_path, 'logs')
 data_dir = os.path.join(cur_path, 'data', dataset)
 data = datasets.create(dataset, data_dir)
 
-spaco([config1, config2, config3], data, 3, regularizer=args.regularizer)
+spaco([config1, config2, config3], data, gamma=args.gamma, iter_steps=args.iter_steps, regularizer=args.regularizer)
