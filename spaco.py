@@ -37,9 +37,9 @@ def update_ids_weights(view, probs, sel_ids, weights, pred_y,
         if v == view:
             continue
         ov = sel_ids[v]
-        probs[view][ov, pred_y[ov]] += gamma * weights[v][ov] / (num_view - 1)
+        probs[view][ov, pred_y[ov]] += gamma * weights[v][ov]
     sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
-                                        add_ratio, gamma, regularizer)
+                                        add_ratio, gamma, regularizer, num_view)
     return sel_id, weight
 
 
@@ -95,7 +95,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     # initiate weights for unlabled examples
     for view in range(num_view):
         sel_id, weight = dp.get_ids_weights(pred_probs[view], pred_y, train_data,
-                                            add_ratio, gamma, regularizer)
+                                            add_ratio, gamma, regularizer, num_view)
         sel_ids.append(sel_id)
         weights.append(weight)
 

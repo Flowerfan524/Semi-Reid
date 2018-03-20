@@ -93,20 +93,21 @@ def get_lambda_class(score, pred_y, train_data, ratio=0.5):
         add_num = min(int(np.ceil(count_per_class[cls] * ratio)),
                       indices.shape[0])
         add_ids[indices[idx_sort[-add_num:]]] = 1
-        lambdas[cls] = cls_score[idx_sort[-add_num]] - 0.1
+        lambdas[cls] = cls_score[idx_sort[-add_num]] - 0.01
     return add_ids.astype('bool'), lambdas
 
 
 def get_ids_weights(pred_prob, pred_y, train_data,
-                    add_ratio, gamma, regularizer):
+                    add_ratio, gamma, regularizer, num_view):
     add_ids, lambdas = get_lambda_class(
         pred_prob, pred_y, train_data, add_ratio)
-    weight = np.array([(pred_prob[i, l] - lambdas[l]) / (gamma + 1e-5)
+    weight = np.array([(pred_prob[i, l] - lambdas[l]) / (gamma + 1e-5) / (num_view - 1)
                        for i, l in enumerate(pred_y)], dtype='float32')
-    weight[~add_ids] = 0
-    if regularizer == 'hard':
+    if regularizer == 'hard' or gamma == 0:
+        weight[~add_ids] = 0
         weight[add_ids] = 1
         return add_ids, weight
+    weight[weight < 0] = 0
     weight[weight > 1] = 1
     return add_ids, weight
 
