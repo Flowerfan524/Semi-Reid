@@ -62,7 +62,7 @@ def self_train(configs, data, iter_step=1, train_ratio=0.2):
 
 config1 = Config()
 config2 = Config(model_name='densenet121', height=224, width=224)
-config3 = Config(model_name='renset101', img_translation=2)
+config3 = Config(model_name='resnet101', img_translation=2)
 dataset = 'market1501std'
 cur_path = os.getcwd()
 logs_dir = os.path.join(cur_path, 'logs')
@@ -70,4 +70,5 @@ data_dir = os.path.join(cur_path, 'data', dataset)
 data = datasets.create(dataset, data_dir)
 
 
-self_train([config1, config2, config3], data, 5)
+#  self_train([config1, config2, config3], data, 5)
+self_train([config3], data, 5)

@@ -130,7 +130,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
                     configs[view].logs_dir, configs[view].model_name,
                     'spaco_%s_p.epoch%d' % (regularizer, step + 1))
             )
-        add_ratio += 1.8
+        add_ratio += 1.6
         pred_y = np.argmax(sum(pred_probs), axis=1)
 
 

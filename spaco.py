@@ -37,7 +37,7 @@ def update_ids_weights(view, probs, sel_ids, weights, pred_y,
         if v == view:
             continue
         ov = sel_ids[v]
-        probs[view][ov, pred_y[ov]] += gamma * weights[v][ov]
+        probs[view][ov, pred_y[ov]] += gamma * weights[v][ov]/(num_view - 1)
     sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
                                         add_ratio, gamma, regularizer, num_view)
     return sel_id, weight
