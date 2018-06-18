@@ -1,0 +1,8 @@
+SEED=0
+REGULARIZER=hard
+DATASET=market1501std
+GAMMA=0.3
+ITER_STEP=5
+GPU=$1
+
+CUDA_VISIBILE_DEVICES=$GPU python p_spaco.py --seed $SEED -r $REGULARIZER -d $DATASET --gamma $GAMMA --iter_steps $ITER_STEP

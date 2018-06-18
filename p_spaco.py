@@ -9,7 +9,7 @@ from reid import datasets
 from reid import models
 import numpy as np
 
-parser = argparse.ArgumentParser(description='soft_spaco')
+arser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
 parser.add_argument('-r', '--regularizer', type=str, default='hard')
 parser.add_argument('-d', '--dataset', type=str, default='market1501std')
@@ -39,7 +39,7 @@ def update_ids_weights(view, probs, sel_ids, weights, pred_y,
         ov = sel_ids[v]
         probs[view][ov, pred_y[ov]] += gamma * weights[v][ov] / (num_view - 1)
     sel_id, weight = dp.get_ids_weights(probs[view], pred_y, train_data,
-                                        add_ratio, gamma, regularizer)
+                                        add_ratio, gamma, regularizer, num_view)
     return sel_id, weight
 
 
@@ -95,7 +95,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     # initiate weights for unlabled examples
     for view in range(num_view):
         sel_id, weight = dp.get_ids_weights(pred_probs[view], pred_y, train_data,
-                                            add_ratio, gamma, regularizer)
+                                            add_ratio, gamma, regularizer, num_view)
         sel_ids.append(sel_id)
         weights.append(weight)
 
@@ -130,7 +130,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
                     configs[view].logs_dir, configs[view].model_name,
                     'spaco_%s_p.epoch%d' % (regularizer, step + 1))
             )
-        add_ratio += 1.8
+        add_ratio += 1
         pred_y = np.argmax(sum(pred_probs), axis=1)
 
 
