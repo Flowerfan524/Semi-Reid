@@ -37,7 +37,7 @@ if args.combine == '123':
 elif args.combine == '12':
     configs = [config1, config2]
 elif args.combine == '23':
-    configs = [config3, config2]
+    configs = [config2, config3]
 else:
     raise ValueError('wrong combination')
 
