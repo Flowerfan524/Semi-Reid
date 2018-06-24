@@ -9,7 +9,7 @@ from reid import datasets
 from reid import models
 import numpy as np
 
-arser = argparse.ArgumentParser(description='soft_spaco')
+parser = argparse.ArgumentParser(description='soft_spaco')
 parser.add_argument('-s', '--seed', type=int, default=0)
 parser.add_argument('-r', '--regularizer', type=str, default='hard')
 parser.add_argument('-d', '--dataset', type=str, default='market1501std')
@@ -58,6 +58,8 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     train_data, untrain_data = dp.split_dataset(
         data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
+    save_dir = os.path.join('logs', 'parallel_spaco', regularizer,
+                            'seed_%d' % args.seed)
     ###########
     # initiate classifier to get preidctions
     ###########
@@ -68,28 +70,24 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     weights = []
     start_step = 0
     for view in range(num_view):
-        if configs[view].checkpoint is None:
-            model = mu.train(train_data, data_dir, configs[view])
-            save_checkpoint({
-                'state_dict': model.state_dict(),
-                'epoch': 0,
-                'train_data': train_data}, False,
-                fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name,
-                    'spaco_%s_p.epoch0' % regularizer)
-            )
-        else:
-            model = models.create(configs[view].model_name,
-                                  num_features=configs[view].num_features,
-                                  dropout=configs[view].dropout,
-                                  num_classes=configs[view].num_classes)
-            model = torch.nn.DataParallel(model).cuda()
-            checkpoint = load_checkpoint(configs[view].checkpoint)
-            model.load_state_dict(checkpoint['state_dict'])
-            start_step = checkpoint['epoch']
-            add_ratio += start_step * 0.5
+        model = mu.train(train_data, data_dir, configs[view])
         pred_probs.append(mu.predict_prob(model, untrain_data,
                                           data_dir, configs[view]))
+        predictions = mu.predict_prob(model, data.trainval, data_dir,
+                                      configs[view])
+        mAP = mu.evaluate(model, data, configs[view])
+        save_checkpoint(
+            {
+                'state_dict': model.state_dict(),
+                'epoch': 0,
+                'train_data': train_data,
+                'trainval': data.trainval,
+                'predictions': predictions,
+                'performance': mAP
+            },
+            False,
+            fpath=os.path.join(save_dir,
+                               '%s.epoch0' % (configs[view].model_name)))
     pred_y = np.argmax(sum(pred_probs), axis=1)
 
     # initiate weights for unlabled examples
@@ -122,20 +120,31 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
 
 #             evaluation current model and save it
             # mu.evaluate(model,data,configs[view])
-            save_checkpoint({
-                'state_dict': model.state_dict(),
-                'epoch': step + 1,
-                'train_data': new_train_data}, False,
+            mAP = mu.evaluate(model, data, configs[view])
+            predictions = mu.predict_prob(model, data.trainval, data_dir,
+                                          configs[view])
+            save_checkpoint(
+                {
+                    'state_dict': model.state_dict(),
+                    'epoch': step + 1,
+                    'train_data': new_train_data,
+                    'trainval': data.trainval,
+                    'predictions': predictions,
+                    'performance': mAP
+                },
+                False,
                 fpath=os.path.join(
-                    configs[view].logs_dir, configs[view].model_name,
-                    'spaco_%s_p.epoch%d' % (regularizer, step + 1))
-            )
-<<<<<<< HEAD
-        add_ratio += 1
-=======
-        add_ratio += 1.6
->>>>>>> 45d1a1e9830ac1272583358f2aca34355b44dfbd
+                    save_dir,
+                    '%s.epoch%d' % (configs[view].model_name, step + 1)))
+            if step + 1 == iter_steps:
+                features += [
+                    mu.get_feature(model, query_gallery, data.images_dir,
+                                   configs[view])
+                ]
+        add_ratio += 1.2
         pred_y = np.argmax(sum(pred_probs), axis=1)
+    acc = mu.combine_evaluate(features, data)
+    print(acc)
 
 
 config1 = Config(model_name='resnet50', loss_name='weight_softmax')

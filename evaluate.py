@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Model Test')
 parser.add_argument('-d', '--dataset', type=str, default='market1501std',
                     choices=datasets.names())
 parser.add_argument('-c', '--checkpoint', type=str, default='spaco.epoch4')
-parser.add_argument('-b', '--batch-size', type=int, default=256)
+parser.add_argument('-b', '--batch-size', type=int, default=8)
 parser.add_argument('--combine', type=str, default='123')
 parser.add_argument('--single-eval', action='store_true', help='evaluate single view')
 args = parser.parse_args()
@@ -42,6 +42,7 @@ else:
     raise ValueError('wrong combination')
 
 features = []
+Accs = []
 for config in configs:
     model = models.create(config.model_name, num_features=config.num_features,
                           dropout=config.dropout, num_classes=config.num_classes)
@@ -55,8 +56,9 @@ for config in configs:
                   if k in model.state_dict().keys()}
     model.load_state_dict(state_dict)
     if args.single_eval:
-        mu.evaluate(model, data, config)
+        Accs += [mu.evaluate(model, data, config)]
 
     features.append(mu.get_feature(model, query_gallery, data.images_dir, config))
 
-mu.combine_evaluate(features, data)
+Accs += [mu.combine_evaluate(features, data)]
+print(Accs)

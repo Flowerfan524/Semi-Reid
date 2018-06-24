@@ -133,7 +133,7 @@ def combine_evaluate(features, dataset):
             for feature in features]
     distmats = np.array([dist.numpy() for dist in distmats])
     distmat = np.sum(distmats, axis=0)
-    evaluate_all(distmat, dataset.query, dataset.gallery)
+    return evaluate_all(distmat, dataset.query, dataset.gallery)
 
 
 def evaluate(model, dataset, config):
@@ -145,4 +145,4 @@ def evaluate(model, dataset, config):
     metric = DistanceMetric(algorithm=config.dist_metric)
     metric.train(model, dataloader)
     evaluator = Evaluator(model)
-    evaluator.evaluate(dataloader, query, gallery, metric, print_freq=config.batch_size)
+    return evaluator.evaluate(dataloader, query, gallery, metric, print_freq=config.batch_size)

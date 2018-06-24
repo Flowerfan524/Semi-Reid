@@ -1,8 +1,11 @@
-SEED=0
-REGULARIZER=hard
-DATASET=market1501std
-GAMMA=0.3
-ITER_STEP=5
 GPU=$1
+REGULARIZER=$2
+GAMMA=0.3
+ITER_STEPS=4
+DATASET=market1501std
 
-CUDA_VISIBILE_DEVICES=$GPU python p_spaco.py --seed $SEED -r $REGULARIZER -d $DATASET --gamma $GAMMA --iter_steps $ITER_STEP
+for ((i=1; i<=10; i++))
+do 
+        echo "run parallel spaco with $REGULARIZER term, seed $i";
+        CUDA_VISIBLE_DEVICES=$GPU python p_spaco.py --dataset $DATASET --seed $i --gamma $GAMMA --iter_steps $ITER_STEPS --regularizer $REGULARIZER
+done

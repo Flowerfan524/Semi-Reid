@@ -1,5 +1,6 @@
 DATASET=market1501std
-CHECKPOINT=$1
+GPU=$1
+CHECKPOINT=$2
 COMBINE=123
 
-CUDA_VISIBLE_DEVICES=1 python evaluate.py -d $DATASET -c $CHECKPOINT --combine $COMBINE --single-eval
+CUDA_VISIBLE_DEVICES=$GPU python evaluate.py -d $DATASET -c $CHECKPOINT --combine $COMBINE --single-eval
