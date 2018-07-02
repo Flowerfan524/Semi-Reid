@@ -4,7 +4,7 @@ MODEL=parallel_spaco
 CHECKPOINT=logs/$MODEL/$RE
 
 
-for ((seed=1; seed<=1; seed++))
+for ((seed=1; seed<=10; seed++))
 do
         bash evaluate.sh $GPU "${CHECKPOINT}/seed_${seed}"
 done

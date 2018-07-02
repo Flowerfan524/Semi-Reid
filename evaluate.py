@@ -17,8 +17,8 @@ parser.add_argument(
     type=str,
     default='market1501std',
     choices=datasets.names())
-parser.add_argument('-c', '--checkpoint', type=str, default='spaco.epoch4')
-parser.add_argument('-b', '--batch-size', type=int, default=128)
+parser.add_argument('-c', '--checkpoint', type=str, required=True)
+parser.add_argument('--output', type=str, required=True)
 parser.add_argument('--combine', type=str, default='123')
 parser.add_argument(
     '--single-eval', action='store_true', help='evaluate single view')
@@ -45,37 +45,64 @@ elif args.combine == '23':
 else:
     raise ValueError('wrong combination')
 
-for epoch in range(5):
+def eval(save_dir):
+    mAP = []
+    Acc = []
     features = []
-    Accs = []
     for idx, config in enumerate(configs):
-        #  if idx == 0:
-            #  continue
-        #  import pdb; pdb.set_trace()
         model = models.create(
             config.model_name,
             num_features=config.num_features,
             dropout=config.dropout,
             num_classes=config.num_classes)
         model = torch.nn.DataParallel(model).cuda()
-
         model_name = MODEL[idx]
-        save_pth = os.path.join(args.checkpoint, '%s.epoch%s' % (model_name, epoch))
+        feature = []
+        for epoch in range(5):
+            save_pth = os.path.join(save_dir, '%s.epoch%s' % (model_name, epoch))
 
-        if os.path.exists(save_pth) is not True:
-            raise ValueError('wrong model pth %s' % save_pth)
-        checkpoint = load_checkpoint(save_pth)
-        state_dict = {
-            k: v
-            for k, v in checkpoint['state_dict'].items()
-            if k in model.state_dict().keys()
-        }
-        model.load_state_dict(state_dict)
-        if args.single_eval:
-            Accs += [mu.evaluate(model, data, config)]
+            if os.path.exists(save_pth) is not True:
+                raise ValueError('wrong model pth %s' % save_pth)
+            checkpoint = load_checkpoint(save_pth)
+            state_dict = {
+                k: v
+                for k, v in checkpoint['state_dict'].items()
+                if k in model.state_dict().keys()
+            }
+            model.load_state_dict(state_dict)
+            if args.single_eval:
+                result = mu.evaluate(model, data, config)
+                mAP += [result[0]]
+                Acc += [result[1]]
 
-        features.append(
-            mu.get_feature(model, query_gallery, data.images_dir, config))
+            feature.append(
+                mu.get_feature(model, query_gallery, data.images_dir, config))
+        features += [feature]
 
-    Accs += [mu.combine_evaluate(features, data)]
-    print(Accs)
+
+    for idx in range(5):
+        feas = [features[j][idx] for j in range(3)]
+        result = mu.combine_evaluate(feas, data)
+        mAP += [result[0]]
+        Acc += [result[1]]
+    return mAP, Acc
+
+mAPs = []
+Accs = []
+for seed in range(1,11):
+    save_dir = os.path.join(args.checkpoint, 'seed_%s' % seed)
+    
+    mAP, Acc = eval(save_dir)
+    mAPs += [mAP]
+    Accs += [Acc]
+
+with open(args.output, 'w') as fw:
+    for mAP in mAPs:
+        fw.write(','.join(mAP) + '\n')
+    for Acc in Accs:
+        fw.write(','.join(Acc) + '\n')
+
+
+
+
+    
