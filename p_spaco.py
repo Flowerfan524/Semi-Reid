@@ -58,6 +58,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     train_data, untrain_data = dp.split_dataset(
         data.trainval, train_ratio, args.seed)
     data_dir = data.images_dir
+    query_gallery = list(set(data.query) | set(data.gallery))
     save_dir = os.path.join('logs', 'parallel_spaco', regularizer,
                             'seed_%d' % args.seed)
     ###########
@@ -68,6 +69,7 @@ def spaco(configs, data, iter_steps=1, gamma=0, train_ratio=0.2, regularizer='ha
     pred_probs = []
     sel_ids = []
     weights = []
+    features = []
     start_step = 0
     for view in range(num_view):
         model = mu.train(train_data, data_dir, configs[view])
