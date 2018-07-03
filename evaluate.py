@@ -20,8 +20,6 @@ parser.add_argument(
 parser.add_argument('-c', '--checkpoint', type=str, required=True)
 parser.add_argument('--output', type=str, required=True)
 parser.add_argument('--combine', type=str, default='123')
-parser.add_argument(
-    '--single-eval', action='store_true', help='evaluate single view')
 args = parser.parse_args()
 
 # load data set
@@ -70,21 +68,19 @@ def eval(save_dir):
                 if k in model.state_dict().keys()
             }
             model.load_state_dict(state_dict)
-            if args.single_eval:
-                result = mu.evaluate(model, data, config)
-                mAP += [result[0]]
-                Acc += [result[1]]
+            result = checkpoint['performance']
+            mAP += [str(result[0])]
+            Acc += [str(result[1])]
 
-            feature.append(
-                mu.get_feature(model, query_gallery, data.images_dir, config))
+            feature += [mu.get_feature(model, query_gallery, data.images_dir, config)]
         features += [feature]
 
 
     for idx in range(5):
         feas = [features[j][idx] for j in range(3)]
         result = mu.combine_evaluate(feas, data)
-        mAP += [result[0]]
-        Acc += [result[1]]
+        mAP += [str(result[0])]
+        Acc += [str(result[1])]
     return mAP, Acc
 
 mAPs = []

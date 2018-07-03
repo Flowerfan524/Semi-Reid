@@ -4,4 +4,4 @@ CHECKPOINT=$2
 OUTPUT=$3
 COMBINE=123
 
-CUDA_VISIBLE_DEVICES=$GPU python evaluate.py -d $DATASET -c $CHECKPOINT --combine $COMBINE --single-eval --output OUTPUT
+CUDA_VISIBLE_DEVICES=$GPU python evaluate.py -d $DATASET -c $CHECKPOINT --combine $COMBINE --output $OUTPUT
